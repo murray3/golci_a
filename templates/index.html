@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block swipe %}
+                <div style="overflow:visible; background-color:#111111">
+					<div id="dvWrapper">
+						<ul id="wrapper">
+								<li><a><img src="img/jeds.png" alt="image 1" style="padding-left:2px; padding-right:2px;"/></a>
+								<a><img src="img/arnie.png" alt="image 2" style="padding-right:2px;"/></a>
+								<a><img src="img/obama_cg.png" alt="image 2"style="padding-right:2px;" /></a></li>
+                                <li><a><img src="img/history.png" alt="image 1" style="padding-left:2px;  padding-right:2px;"/></a>
+								<a><img src="img/ethics.png" alt="image 2" style="padding-right:2px;"/></a>
+								<a><img src="img/queen_gdn.png" alt="image 2" style="padding-right:2px;"/></a></li>
+                                <li><a><img src="img/politics_now.png" alt="image 1"  style="padding-left:2px;  padding-right:2px;"/></a>
+								<a><img src="img/world_affairs.png" alt="image 2" style="padding-right:2px;"/></a>
+								<a><img src="img/environ.png" alt="image 2" style="padding-right:2px;"/></a></li>
+								<li><a><img src="img/obama_cg.png" alt="image 1" style="padding-left:2px;  padding-right:2px;"/></a>
+								<a><img src="img/jeds.png" alt="image 2" style="padding-right:2px;"/></a>
+								<a><img src="img/arnie.png" alt="image 2"style="padding-right:2px;" /></a></li>
+                                <li><a><img src="img/queen_gdn.png" alt="image 1" style="padding-left:2px;  padding-right:2px;"/></a>
+								<a><img src="img/history.png" alt="image 2" style="padding-right:2px;"/></a>
+								<a><img src="img/ethics.png" alt="image 2" style="padding-right:2px;"/></a></li>
+                                <li><a><img src="img/world_affairs.png" alt="image 1" style="padding-left:2px;  padding-right:2px;"/></a>
+								<a><img src="img/politics_now.png" alt="image 2" style="padding-right:2px;"/></a>
+								<a><img src="img/obama_cg.png" alt="image 2" style="padding-right:2px;"/></a></li>
+                                <li><a><img src="img/environ.png" alt="image 1" style="padding-left:2px;  padding-right:2px;"/></a>
+								<a><img src="img/history.png" alt="image 2" style="padding-right:2px;"/></a>
+								<a><img src="img/obama_cg.png" alt="image 2" style="padding-right:2px;"/></a></li>
+						</ul>
+                    <div class="nav_left" style="width: 47px; cursor: default;"></div>
+                    <div class="nav_right" style="width: 47px; cursor: default;">
+                    </div>                    
+					</div>
+                </div>
+{% endblock %}            
+{% block content %}
+    <ul id="dynalist" data-role="listview" data-theme="d" data-divider-theme="d">
+			<li data-role="list-divider">Latest golci <span class="ui-li-count">{{count}}</span></li>
+    {% for c in cons %}
+       <li><a href="/tree?con_id={{c.key().id()}}" data-ajax="false">
+       <img src="/image?entity_id={{ c.key().id()}}" style="width:100%; height:100%"/>
+      {% if c.author %}
+        <p><strong>{{ c.author.nickname() }} Posted on {{c.date}}:</strong></p>
+      {% else %}
+       <p><strong>An anonymous person wrote:</strong></p>
+      {% endif %}
+      
+      <p>{{ c.content }}</p>
+      <p class="ui-li-aside">tagged as {{c.branch_name}}</p>
+      </a></li>
+    {% endfor %}
+    </ul>
+{% endblock %}
+{% block mediaJS2 %}
+<script type="text/javascript">
+$(document).ready(function() {
+var lPages = 0,
+    tPage = 1,
+    pWidth;
+
+function prepForm() {
+    var dvW = $('#dvWrapper');
+    //pWidth = dvW.parent().width();
+    pWidth = dvW.width();
+    var height = window.innerHeight; //dvW.height();
+    dvW.css({
+        'position': "relative",
+        'overflow': "hidden",
+        'width': pWidth,
+        'height': "195px"
+    });
+    var ulW = $('#wrapper');
+    ulW.children().each(function(i) {
+        $(this).css({
+            'width': pWidth,
+            'height': "195px",
+            'float': 'left'
+        });
+        lPages++;
+    });
+    ulW.bind('swipeleft', swipeLeft).bind('swiperight', swipeRight);
+    ulW.css({
+        'position': "relative",
+        'padding': "0",
+        'margin': "0",
+        'listStyle': "none",
+        'width': lPages * pWidth
+    });
+}
+
+function swipeLeft() {
+    if (tPage < lPages) {
+        tPage++;
+        $('#wrapper').animate({
+            left: "-=" + pWidth
+        }, 100);
+    }
+}
+
+function swipeRight() {
+    
+    if (tPage > 1) {
+        tPage--;
+        $('#wrapper').animate({
+            left: "+=" + pWidth
+        }, 100);
+    }
+}
+
+function fullswipeRight() {
+   
+        tPage=1;
+        $('#wrapper').animate({
+            left: "+=" + pWidth*6
+        }, 100);
+    }
+    
+function preswipeLeft() {
+        var psl=$("#nav_left");
+        psl.css({
+        'opacity':'1'
+        });
+    }
+    
+function postswipeLeft() {
+        var psl1=$("#nav_left");
+        psl1.css({
+        'opacity':'0.5'
+        });
+    }
+       
+    
+prepForm();
+var t = setInterval(preswipeLeft,7500);
+var t1 = setInterval(swipeLeft,10000);
+var t3 = setInterval(postswipeleft,12500);
+var t4 = setInterval(preswipeRight,68500);
+var tt = setInterval(fullswipeRight,70001);
+var tt1 = setInterval(postswipeRight,71500);
+})(jQuery);
+
+//$(document).bind('pageinit',function(){
+//var t = setInterval(swipeLeft,10000);
+//var tt = setInterval(swipeRight,20000);
+//});
+//$("#submit_golci").click(function() {
+//alert("clicked");
+//var text1 = $('#content').val();
+//var path='/latestgolci';
+//$.getJSON(path,
+//    function(data){
+//    $("#dynalist").prepend('<li><h3>'+data.author+' wrote:</h3><p>'+data.content+'</p></li>');
+//    $("#dynalist").listview("refresh");
+ //   });
+//});
+</script>
+{% endblock %}

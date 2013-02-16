@@ -1,0 +1,16 @@
+{
+ "name": "{{ con.content }}",
+ "children": [
+  {% for t in tl -%}
+     {"name": "{{ t.content }}",
+     "children": [
+        {% for s in sl -%}
+        {% if s.parent_id == t.key().id() -%}
+        {"name": "{{ s.content }}"},
+        {% endif -%}
+        {% endfor -%}
+        ]
+        },
+  {% endfor -%}
+  ]
+}

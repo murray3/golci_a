@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block header %}
+    <h1>simple arg</h1>
+{% endblock %}
+{% block content %}
+    <form action="/postgolci" method="post">
+    	<ul data-role="listview" data-dividertheme="c">
+        <li>
+        <label for="branch_name" class="select">Select Topic:</label>
+        <select name="branch_name" id="branch_name">
+            {% for b in branches %}
+            <option value="{{b.branch}}">{{b.branch}}</option>
+            {% endfor %}   
+        </select>
+        </li>
+    	<li class="ui-body ui-body-c">
+          <fieldset class="ui-grid-c">
+          <label for="content" >Contention:</label>
+          <textarea id="content" name="content" rows="3" cols="60"></textarea>
+        </fieldset>
+        </li>
+        <li class="ui-body ui-body-c">
+          <fieldset class="ui-grid-c">
+          <label for="content" >Image URL:</label>
+          <input type="text" id="picture_url" name="picture_url" cols="60"></input>
+        </fieldset>
+        </li>
+    	<li class="ui-body ui-body-a">
+          <fieldset class="ui-grid-c">
+			<a id="submit_golci"  href="#" data-role="button">Post golci</a>
+		</fieldset>
+        </li>
+        <li class="ui-body ui-body-a">
+          <fieldset class="ui-grid-c">
+        <input type="submit" value="Sign Guestbook">
+        </fieldset>
+        </li>
+        </ul>
+    </form>
+    <ul id="dynalist" data-role="listview" data-theme="d" data-divider-theme="d">
+			<li data-role="list-divider">Latest golci <span class="ui-li-count">{{count}}</span></li>
+    {% for c in cons %}
+       <li><a href="index.html">
+       <img src="{{c.image_URL}}" style="width:100%; height:100%"/>
+      {% if c.author %}
+        <p><strong>{{ c.author.nickname() }} Posted on {{c.date}}:</strong></p>
+      {% else %}
+       <p><strong>An anonymous person wrote:</strong></p>
+      {% endif %}
+      
+      <p>{{ c.content }}</p>
+      <p class="ui-li-aside">tagged as {{c.branch_name}}</p>
+      </a></li>
+    {% endfor %}
+    </ul>
+{% endblock %}
+{% block mediaJS %}
+<script type="text/javascript">
+$("#submit_golci").click(function() {
+//alert("clicked");
+var text1 = $('#content').val();
+var path='/postgolci?text1='+text1;
+$.getJSON(path,
+    function(data){
+    $("#dynalist").prepend('<li><h3>'+data.author+' wrote:</h3><p>'+data.content+'</p></li>');
+    $("#dynalist").listview("refresh");
+    });
+});
+</script>
+{% endblock %}

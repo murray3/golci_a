@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+    {% block header %}
+    <div data-role="header" id="header" data-position="fixed">
+        <h1>Menu</h1><a href="/logout" data-ajax="false">Logout</a><a style="color:red;"href="/menu" data-icon="gear" class="ui-btn-right">Menu</a>
+    </div><!-- /header -->
+{% endblock %}
+{% block content %}
+    <ul data-role="listview">
+    <li><a href="/mygolci">My golci</a></li>
+    <li><a href="/add?edit=0">Post new golci</a></li>
+    {% for b in branches %}
+       <li><span class='ui-li-count'>Total number: 1 </span>
+      <a href="/branch?branch={{b.key().id()}}&branch_name={{ b.branch }}">{{ b.branch }}</a>
+      </li>
+    {% endfor %}
+    </ul>
+{% endblock %}
+{% block mediaJS %}
+{% endblock %}

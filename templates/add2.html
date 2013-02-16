@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block mediaJSTOP %}
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="/js/libs/jquery-1.6.4.min.js"><\/script>')</script>
+    <script src="/mobile/jquery.mobile-1.1.1.min.js"></script>
+    <script type="text/javascript">
+    alert("clicked");
+    </script>
+ {% endblock %}
+{% block header %}
+    <h1>simple arg</h1>
+{% endblock %}
+{% block content %}
+    <form action="/postgolci" method="post">
+    	<ul id="form_list" data-role="listview" data-dividertheme="c">
+        <li>
+        <label for="branch_name" class="select">Select Topic:</label>
+        <select name="branch_name" id="branch_name">
+            {% for b in branches %}
+            <option value="{{b.branch}}">{{b.branch}}</option>
+            {% endfor %}   
+        </select>
+        <input type="hidden" id="picture_url_1" name="picture_url_1" value="">
+        <input type="hidden" id="picture_url_2" name="picture_url_2" value="">
+        <input type="hidden" id="picture_url_3" name="picture_url_3" value="">
+        <input type="hidden" id="picture_url_4" name="picture_url_4" value="">
+        <input type="hidden" id="picture_url_5" name="picture_url_5" value="">
+        <input type="hidden" id="picture_url_6" name="picture_url_6" value="">
+        <input type="hidden" id="picture_url_7" name="picture_url_7" value="">
+        <input type="hidden" id="picture_url_8" name="picture_url_8" value="">
+        <input type="hidden" id="picture_url_9" name="picture_url_9" value="">
+        <input type="hidden" id="picture_url_10" name="picture_url_10" value="">
+        </li>
+    	<li class="ui-body ui-body-c" id="content_li">
+            <label for="content" >Contention:</label>
+            <textarea id="content" name="content" rows="3" cols="75"></textarea>
+        </li>
+ 
+    	<li class="ui-body ui-body-c">
+          <fieldset class="ui-grid-b">
+			<div class="ui-block-c"><a id="add_reason" href="#" data-role="button" data-icon="plus" data-theme="d">Support</a></div>
+			<div class="ui-block-c"><a id="add_objection" href="#" data-role="button" data-icon="minus" data-theme="d">Object</a></div>
+            <div class="ui-block-c"><a id="add_btn_0" href="#add_page" data-rel="dialog" data-transition="flip"  data-role="button" data-icon="plus" data-theme="d">Extra's</a></div>   
+          </fieldset>
+        </li>
+        <li class="ui-body ui-body-a">
+        <input type="submit" value="Post golci">
+        </li>
+        </ul>
+    </form>
+{% endblock %}
+{% block content2 %}
+    <div data-role="page"  id="add_page">
+    <div data-role="header" data-theme="d">
+		<h1>Add more data</h1>
+    </div>
+    <div data-role="content" data-theme="c">
+		<h3>Add additional data to your post</h3>
+		<a href="#add_images" data-role="button" data-rel="dialog" data-transition="pop" data-theme="d">Add Images to the post</a>       
+		<a href="#" data-role="button" data-rel="dialog" data-transition="slidedown" data-theme="d">Add Location</a>      
+		<a href="#" data-role="button" data-rel="dialog" data-transition="slidedown" data-theme="d">Add Historical Date</a> 
+        <a href="#add_fallacy" data-role="button" data-rel="dialog" data-transition="pop" data-theme="d">Tag this post with an Ari.</a>        
+		<a href="add.html" data-role="button" data-rel="back" data-theme="a">back to edit-golci form</a>    
+	</div>
+    </div><!-- /page -->
+    
+<div data-role="page" id="add_images">
+    <div data-role="header" data-theme="d">
+    <h1>Add Images</h1>
+    </div>
+    <div data-role="content" data-theme="c">  
+    <div align="center"><img src="" alt="" width="200px" height="260px" /></div>
+		<h3>Add Images to Post: </h3>
+        <select name="image_name" id="image_name">
+            <option value="image1">Main Image</option>
+            <option value="image2">Image 2</option>
+            <option value="image3">Image 3</option>
+            <option value="image4">Image 4</option>
+            <option value="image5">Image 5</option>
+            <option value="image6">Image 6</option>
+            <option value="image7">Image 7</option>
+            <option value="image8">Image 8</option>
+            <option value="image9">Image 9</option>
+            <option value="image10">Image 10</option>  
+        </select>
+          <label for="pic_input" >Image URL:</label>
+            <input type="text" id="pic_input" name="pic_input"></input>            
+		<a href="#" data-role="button" data-rel="dialog" id="pic_button" data-theme="d">Add Image</a>   
+	</div>
+    </div><!-- /page -->
+    
+<div data-role="page" id="add_fallacy">
+    <div data-role="header" data-theme="d">
+		<h1>Tag Post with an Ari (a fallacy).</h1>
+    </div>
+    <div data-role="content" data-theme="c">
+       <div align="center"><img src="/img/ari.jpg" alt="Hi I'm Ari!" width="200px" height="260px" /></div>
+		<h3>Select Ari type: </h3>
+        <select name="fallacy_name" id="fallacy_name">
+            {% for b in aris %}
+            <option value="{{b.key().id()}}">{{b.ari}}</option>
+            {% endfor %}   
+        </select>
+          <label for="ari" >Ari:</label>
+            <textarea id="ari" name="ari" rows="3" cols="75"></textarea>            
+		<a href="#" id="add_ari_btn" name="add_ari_btn" data-role="button" data-theme="a">Add Ari</a>    
+	</div>
+    </div><!-- /page -->
+{% endblock %}
+{% block mediaJS2 %}
+<script type="text/javascript">
+alert("clicked");
+$("#submit_golci").click(function() {
+//alert("clicked");
+var text1 = $('#content').val();
+var path='/postgolci?text1='+text1;
+$.getJSON(path,
+    function(data){
+    $("#dynalist").prepend('<li><h3>'+data.author+' wrote:</h3><p>'+data.content+'</p></li>');
+    $("#dynalist").listview("refresh");
+    });
+});
+
+$.ac=1;
+$.rc=0;
+$.rcli='#content_li';
+$.oc=0;
+$.ocli='#content_li';
+$.ar="0";
+//$( document ).delegate("#mob_page", "pageinit", function() {
+   // $('li[id*="reason_li"]').hide();
+   // var i=0;
+   // while (i<=$.rc)
+   // {
+   // $('#reason_li_' + $.rc).show();
+   // i++;
+   // }
+   // $("#form_list").listview("refresh");
+//});
+
+    
+$("#add_reason").live('click', function() {
+    var rc = $.rc; //this gets existing number of reasons
+    $.rc = $.rc+1; // this is counter for new reason elements
+    if ($.rc != 1) { 
+        $.rcli='#reason_li_' + rc;
+    }
+    var r1li = '<li class="ui-body ui-body-c" id="reason_li_' + $.rc + '"><label for="content" >Reason ' + $.rc + ':</label><textarea id="reason_' + $.rc + '" name="reason_' + $.rc + '" rows="3" cols="75"></textarea></li>'
+    $(r1li).insertAfter($.rcli);    
+    $('#reason_' + $.rc).textinput();
+    $('#add_data' + $.rc).button(); 
+    $(r1li).("refresh"); 
+    $("#form_list").listview("refresh");
+    });
+    
+
+
+$("#add_objection").live('click', function() {
+    var oc = $.oc; //this gets existing number of reasons
+    $.oc = $.oc+1; // this is counter for new reason elements
+    if ($.rc != 0) { 
+        $.ocli='#reason_li_' + $.rc;
+    }   
+    else if ($.oc != 1) { 
+        $.ocli='#objection_li_' + oc;
+    }
+    var o1li = '<li class="ui-body ui-body-c" id="objection_li_' + $.oc + '"><label for="content" >Objection ' + $.oc + ':</label><textarea id="objection_' + $.oc + '" name="objection_' + $.oc + '" rows="3" cols="75"></textarea></li>'
+    $(o1li).insertAfter($.ocli);    
+    $('#objection_' + $.oc).textinput();
+    $('#add_data_' + $.oc).button(); 
+    $(o1li).("refresh"); 
+    $("#form_list").listview("refresh");
+    });
+$("#pic_button").live('click', function() {
+    var pic1 = $("#pic_input1").val();
+    $("#picture_url_1").val(pic1);
+    var pic2 = $("#pic_input2").val();
+    $("#picture_url_2").val(pic2);
+    var pic3 = $("#pic_input3").val();
+    $("#picture_url_3").val(pic3);
+    var pic4 = $("#pic_input4").val();
+    $("#picture_url_4").val(pic4);
+    var pic5 = $("#pic_input5").val();
+    $("#picture_url_5").val(pic5);
+    var pic6 = $("#pic_input6").val();
+    $("#picture_url_6").val(pic6);
+    var pic7 = $("#pic_input7").val();
+    $("#picture_url_7").val(pic7);
+    var pic8 = $("#pic_input8").val();
+    $("#picture_url_8").val(pic8);
+    var pic9 = $("#pic_input9").val();
+    $("#picture_url_9").val(pic9);
+    var pic10 = $("#pic_input10").val();
+    $("#picture_url_10").val(pic10);
+    });
+</script>
+{% endblock %}

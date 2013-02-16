@@ -1,0 +1,6 @@
+[
+{"C1": "top level reason for the contention", "C2": "2nd level - reason for the reason", "C2": "2nd level - reason 2 for the reason"}, 
+{"C1": "top level reason 2 for the contention"},
+{"C1": "top level test", "C2": "2nd level - reason for the reason", "C3": "3rd level - reason for the reason", "C3": "3rd level - reason 2 for the reason", "C3": "3rd level - reason 3 for the reason"}, 
+{"C1": "top level test2", "C2": "2nd level - reason 2 for the reason", "C3": "3rd level - reason for the reason", "C4": "4th level - reason for the reason"}
+]

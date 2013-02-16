@@ -1,0 +1,556 @@
+{% extends "alt_base.html" %}
+{% block header %}
+    <h1>{{branch_name}}</h1>
+{% endblock %}
+{% block mediaCSS %}
+<link rel="stylesheet" href="/css/jquery.ui.datepicker.mobile.css" />
+<style rel="stylesheet">
+    .highlight {
+    background-color: #FFFF88;
+    }
+    .highlight2 {
+    background-color: #EDDF9B;
+    }
+    .highlight3 {
+    background-color: #FFB900;
+    }
+
+div.edit_inline {
+    background-color: #FFFFFF;
+    border: 0.5px solid #CCCCCC;
+    border-top: 2px solid #CCCCCC;
+    margin: 0px;
+    padding: 3px;
+
+    min-height:30px;
+    font: lighter 10pt/13pt Helvetica,sans-serif; 
+
+    
+    width: 100%;
+    -moz-transition: height 200ms linear 0s;
+    text-shadow: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    padding: 0.4em;
+}
+ textarea { 
+    width: 100%;
+    min-height: 25px;
+    border-style: none; 
+    border-color: Transparent; 
+    overflow: auto;  
+    font: normal 12pt/14pt Serif;    
+  }
+div.edit_status {
+    background-color: #FFFFFF;
+    border: 0.5px solid #CCCCCC;
+    border-top: 2px solid #CCCCCC;
+    margin-top: 0px;
+    padding: 0.4em;
+
+    min-height:20px;
+    font: bold 10pt/13pt Helvetica,sans-serif; 
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) inset;
+    display: inline-block;
+    width: 100%;
+    -moz-transition: height 200ms linear 0s;
+    text-shadow: 0;
+    font-size: 10px;
+    line-height: 1.4;
+}
+div.edit_metrics {
+    background-color: #FFFFFF;
+    border: 0.5px solid #CCCCCC;
+    padding-top: 2px;
+    padding: 0.0em;
+
+    min-height:18px;
+    font: bold 10pt/13pt Helvetica,sans-serif; 
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) inset;
+    display: inline-block;
+    width: 38%;
+    -moz-transition: height 200ms linear 0s;
+    text-shadow: 0;
+    font-size: 10px;
+    line-height: 1.4;
+}
+div.edit_message {
+    background-color: #FFFFFF;
+    border: 0.5px solid #CCCCCC;
+    padding-top: 2px;
+    padding: 0.0em;
+
+    min-height:20px;
+    font: bold 10pt/13pt Helvetica,sans-serif; 
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) inset;
+    display: inline-block;
+    width: auto;
+    -moz-transition: height 200ms linear 0s;
+    text-shadow: 0;
+    font-size: 10px;
+    line-height: 1.4;
+}
+div.edit_icons {
+    float: right; 
+    margin-right:0px; 
+    padding-top: 7px;"
+    background-color: #FFFFFF;
+    border: 0.5px solid #CCCCCC;
+    padding: 0.0em;
+
+    min-height:18px;
+    font: bold 10pt/13pt Helvetica,sans-serif; 
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) inset;
+    display: inline-block;
+    width: 60%;
+    -moz-transition: height 200ms linear 0s;
+    text-shadow: 0;
+    font-size: 10px;
+    line-height: 1.4;
+}
+</style>
+{% endblock %}
+{% block mediaJSTOP %}
+   <!-- JavaScript at the bottom for fast page loading -->
+
+    <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="/js/libs/jquery-1.6.4.min.js"><\/script>')</script>
+    <script src="/mobile/jquery.mobile-1.1.1.min.js"></script>
+    <script type="text/javascript" src="http://dev.jtsage.com/jquery.mousewheel.min.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.js"></script>
+    <script src="/js/libs/jquery-ui-1.8.7.custom.min.js"></script>
+    <!-- scripts concatenated and minified via build script -->
+    <script src="/js/plugins.js"></script>
+    <script src="/js/script.js"></script>
+    <script src="/js/libs/jquery.tinycarousel.js"></script>
+    <script type="text/javascript">
+    //$(document).live("mobileinit", function(){
+    //$.mobile.allowCrossDomainPages = true;
+    //});
+    </script>
+<script src="/js/jQuery.ui.datepicker.js"></script>
+<script src="/js/jquery.ui.datepicker.mobile.js"></script>
+<script src="/js/libs/jquery.highlight.js"></script>
+<script type="text/javascript">
+/* jQuery editable Copyright Dylan Verheul <dylan@dyve.net>
+ * Licensed like jQuery, see http://docs.jquery.com/License
+ */
+//alert("test editavble");
+$.fn.editable = function(url, options) {
+	// Options
+	options = arrayMerge({
+		"url": url,
+		"paramName": "q",
+		"callback": null,
+		"saving": "saving ...",
+		"type": "textarea",
+		"submitButton": 1,
+		"delayOnBlur": 0,
+		"extraParams": {},
+		"editClass": null
+	}, options);
+	// Set up
+	this.click(function(e) {
+			if (this.editing) return;
+			if (!this.editable) this.editable = function() {
+				var me = this;
+                var myid = $(this).attr('id');
+				me.editing = true;
+				me.orgHTML = $(me).html();
+                me.orgHTML = me.orgHTML.replace(/<(?:.|\n)*?>/gm, '');
+                var exTXT = me.orgHTML
+				me.innerHTML = "";
+				if (options.editClass) $(me).addClass(options.editClass);
+				var f = document.createElement("form");
+				var i = createInputElement(me.orgHTML);
+				var t = 0;
+				f.appendChild(i);
+				if (options.submitButton) {
+					var b = document.createElement("input");
+					b.type = "submit";
+					b.value = "OK";
+					f.appendChild(b);
+				}
+				me.appendChild(f);
+                f.width = "100%";
+                i.width = "100%";
+				i.focus();
+				$(i).blur(
+						options.delayOnBlur ? function() { t = setTimeout(reset, options.delayOnBlur) } : reset
+					)
+					.keydown(function(e) {
+						if (e.keyCode == 27) { // ESC
+							e.preventDefault;
+							reset
+						}
+					});
+				$(f).submit(function(e) {
+					if (t) clearTimeout(t);
+					e.preventDefault();
+					var p = {};
+					p[i.name] = $(i).val();
+					$(me).html(options.saving).load(options.url, arrayMerge(options.extraParams, p), function() {
+						// Remove script tags
+						me.innerHTML = me.innerHTML.replace(/<\s*script\s*.*>.*<\/\s*script\s*.*>/gi, "");
+						// Callback if necessary
+						if (options.callback) options.callback(me); 
+						// Release
+						me.editing = false;						
+					});
+				});
+				function reset() {
+		
+        // me.innerHTML = me.orgHTML; edited by cjm
+                    me.innerHTML = $(i).val();
+                    var rc = $.rc;
+                    var oc = $.oc;
+                    var vals = {};
+                    if (myid == "content_0") {
+                        if ($(i).val() != "") {
+                            vals[0] = me.innerHTML.replace(/<\s*script\s*.*>.*<\/\s*script\s*.*>/gi, "");
+                        } else {
+                            vals[0] = " ";
+                            }
+                    } else {
+                    var con_0 = document.getElementById("content_0");
+                    vals[0] = con_0.innerHTML.replace(/<\s*script\s*.*>.*<\/\s*script\s*.*>/gi, "");
+                    }
+                    for (var ii=1;ii<=rc;ii++) {
+                        var reasonvar = "reason_" + ii;
+                        vals[ii] = document.getElementById(reasonvar);
+                        if (vals[ii].innerHTML != "") {
+                            vals[ii] = vals[ii].innerHTML;
+                        } else {
+                            vals[ii] = " ";
+                        }
+                        }
+                    for (var ii=1;ii<=oc;ii++) {
+                        var objectvar = "objection_" + ii;
+                        vals[ii+10] = document.getElementById(objectvar);
+                        if (vals[ii+10].innerHTML != "") {
+                            vals[ii+10] = vals[ii+10].innerHTML;
+                        } else {
+                            vals[ii+10] = " ";
+                        }        
+                        }
+                    //}
+                        
+                    // var valu1 = document.getElementById('reason_li_0');
+                    // if (valu1.innerHTML != "") {
+                        // valu1 = valu1.innerHTML;
+                        // }else{
+                        // valu1 = " ";
+                        // }
+                    // var valu2 = document.getElementById('reason_li_1');
+                    // if (valu2.innerHTML != "") {
+                        // valu2 = valu2.innerHTML;
+                        // }else{
+                        // valu2 = " ";
+                        // }
+                    // var valu3 = document.getElementById('reason_li_2');
+                    // if (valu3.innerHTML != "") {
+                        // valu3 = valu3.innerHTML;
+                        // }else{
+                        // valu3 = " ";
+                        // }
+                    // var rc = $.rc;
+                    // for (var ii=1;ii<=rc;ii++)
+                        // { 
+                        // var myidd = 'reason_' + ii;
+                        // alert(myid + " " + myidd)
+                        // if (myid == myidd) { 
+                            // valu[ii] = $(i).val();
+                        // }
+                        // }
+                    //alert(valu[1] + valu[2] + valu[3]);
+					if (options.editClass) $(me).removeClass(options.editClass);
+					me.editing = false;
+                    if ($(i).val() != exTXT) {
+                        // for (var ii=0;ii<=rc;ii++)
+                        // { 
+                        // valu[ii] = valu[ii].replace(/ /g,"_"); 
+                        // }
+                        //valu1 = valu1.replace(/ /g,"_"); 
+                        //valu2 = valu2.replace(/ /g,"_");
+                        //valu3 = valu3.replace(/ /g,"_");
+                        var tgl = $.tgl
+                        var path='/textmatch?con='+vals[0]+'&r1='+vals[1]+'&r2='+vals[2]+'&r3='+vals[3]+'&r4='+vals[4]+'&r5='+vals[5]+'&r6='+vals[6]+'&r7='+vals[7]+'&r8='+vals[8]+'&r9='+vals[9]+'&r10='+vals[10]+'&o1='+vals[11]+'&o2='+vals[12]+'&o3='+vals[13]+'&o4='+vals[14]+'&o5='+vals[15]+'&o6='+vals[16]+'&o7='+vals[17]+'&o8='+vals[18]+'&o9='+vals[19]+'&o10='+vals[20]+'&tgl='+tgl;  
+                        $.getJSON(path,
+                           function(data){window.iargu_globals.textbag_1 = data.tb1, window.iargu_globals.textbag_2 = data.tb2, window.iargu_globals.textbag_3 = data.tb3, $.tgl = 1 });
+                           
+                    }
+				}
+			};
+			this.editable();	
+            //var valu=$('.edit_inline').innerHTML;           
+            //var path='/init/default/test3/'+valu;                
+            //$.getJSON(path,
+            //function(data){ $('.edit_inline').highlight(data)});
+		});
+	// Don't break the chain
+	return this;
+	// Helper functions
+	function arrayMerge(a, b) {
+		if (a) {
+			if (b) for(var i in b) a[i] = b[i];
+			return a;
+		} else {
+			return b;		
+		}
+	};
+	function createInputElement(v) {
+		if (options.type == "textarea") {
+			var i = document.createElement("textarea");
+			options.submitButton = false;
+			options.delayOnBlur = 100; // delay onBlur so we can click the button
+		} else {
+			var i = document.createElement("input");
+			i.type = "text";
+		}
+		$(i).val(v);
+		i.name = options.paramName;
+		return i;
+	}
+};
+</script>
+ <script type="text/javascript">
+// window.iargu_globals = { 
+    // textbag_1 : ['tb1','tb1'], 
+    // textbag_2 : ['tb2','tb2'],
+    // textbag_3 : ['tb3','tb3'],
+// }; 
+
+$(document).ready(function() {
+$.ac=1;
+$.rc=1;
+$.oc=1;
+$.ar="0";
+$.tgl=0;
+window.iargu_globals = { 
+    textbag_1 : ['tb1','tb1'], 
+    textbag_2 : ['tb2','tb2'],
+    textbag_3 : ['tb3','tb3'],
+}; 
+$(".edit_inline").editable();
+});
+
+</script>
+
+<script type="text/javascript">
+//$("#submit_golci").click(function() {
+//alert("clicked");
+//var text1 = $('#content').val();
+//var path='/postgolci?text1='+text1;
+//$.getJSON(path,
+//    function(data){
+//    $("#dynalist").prepend('<li><h3>'+data.author+' wrote:</h3><p>'+data.content+'</p></li>');
+//    $("#dynalist").listview("refresh");
+//    });
+//});
+
+// $.ac=1;
+// $.rc=0;
+// $.rcli='#content_li';
+// $.oc=0;
+// $.ocli='#content_li';
+// $.ar="0";
+//$( document ).delegate("#mob_page", "pageinit", function() {
+   // $('li[id*="reason_li"]').hide();
+   // var i=0;
+   // while (i<=$.rc)
+   // {
+   // $('#reason_li_' + $.rc).show();
+   // i++;
+   // }
+   // $("#form_list").listview("refresh");
+//});
+
+    
+$('[id^=reason_button]').live('click', function() {
+
+    if ($.rc >= 5) { 
+    alert("max 5 reasons in this arg submitted")
+    } else {
+       $.rcli='#collapsible_' + $.rc;
+       var rcc='#control_div_' + $.rc;
+       var rc_ui = $.rc+1; //this gets existing number of reasons and adds one for the ui text 
+       var readiv = '<div id="collapsible_' + $.rc + '" data-role="collapsible" data-mini="true" data-theme="c" data-content-theme="c" ><h3>Reason '  + $.rc + ' by user on 220712</h3><div id="control_div_' + $.rc + '"style="margin-left: 0px;" ><div id ="control_' + $.rc + '" data-role="controlgroup" data-type="horizontal" data-mini="true"><a href="#" id="reason_button_' + $.rc + '" data-role="button" data-icon="plus" data-iconpos="notext"></a><a href="#" id="object_button_' + $.rc + '" data-role="button" data-icon="minus" data-iconpos="notext"></a><a href="#add_ari" id="ari_button_' + $.rc + '" data-role="button" data-icon="alert" data-rel="dialog" data-transition="flip" data-iconpos="notext"></a><a href="#add_page" id="add_button_' + $.rc + '" data-role="button" data-icon="gear" data-rel="dialog" data-transition="flip" data-iconpos="notext">extra</a><a href="#images" id="images_button_' + $.rc + '" data-role="button" data-icon="check" data-rel="dialog" data-transition="flip" data-iconpos="notext">extra</a><a href="#vote" id="vote_button_' + $.rc + '" data-role="button" data-icon="star" data-rel="dialog" data-transition="flip" data-iconpos="notext"></a></div></div><div id="content_' + $.rc + '" name="content_ ' + $.rc + '" class="edit_inline">   </div><div  id="edit_status_' + $.rc + '" class="edit_status"><div id="edit_metrics_' + $.rc + '" class="edit_metrics">T4|W6|H7|J4|F5</div><div id="edit_icons_' + $.rc + '" class="edit_icons" ><img id="ari_icon_' + $.rc + '" src="img/ari.png" style="margin-left: 5px; height: 16px; width: 16px;"/><img id="rabbit_icon_' + $.rc + '"  src="img/rabbit.png" style="margin-left: 5px; height: 16px; width: 16px;"/><img id="holdhands_icon_' + $.rc + '"  src="img/holdhands.png" style="margin-left: 5px; height: 16px; width: 16px;"/><img id="clock_icon_' + $.rc + '"  src="img/clock.png" style="margin-left: 5px; height: 16px; width: 16px;"/></div>'
+
+       var idr = '#' + $(this).parent().parent().parent().parent().parent().attr("id") + ' div:first';
+       $(readiv).appendTo($(idr)).trigger('create');
+       $(".edit_inline").editable();
+       $(idr).find('div[data-role=collapsible]').collapsible({refresh:true}); 
+       $(rcc).find('div[data-role=controlgroup]').controlgroup({refresh:true}); 
+       $.rc = $.rc+1; // increment the reason counter (rc) for the new reason elements - note count starts at 2 !! //
+    }
+    });
+    
+$('[id^=object_button]').live('click', function() {
+    if ($.oc >= 5) { 
+    alert("max 5 objections in this arg submitted")
+    } else {
+       $.ocli='#collapsible_' + $.oc;
+       var occ='#control_div_' + $.oc;
+       var oc_ui = $.oc+1; //this gets existing number of reasons and adds one for the ui text 
+       var objdiv = '<div id="collapsible_' + $.oc + '" data-role="collapsible" data-mini="true" data-theme="c" data-content-theme="c" ><h3>Objection '  + $.oc + ' by user on 220712</h3><div id="control_div_' + $.oc + '"style="margin-left: 0px;" ><div id ="control_' + $.oc + '" data-role="controlgroup" data-type="horizontal" data-mini="true"><a href="#" id="reason_button_' + $.oc + '" data-role="button" data-icon="plus" data-iconpos="notext"></a><a href="#" id="object_button_' + $.oc + '" data-role="button" data-icon="minus" data-iconpos="notext"></a><a href="#add_ari" id="ari_button_' + $.oc + '" data-role="button" data-icon="alert" data-rel="dialog" data-transition="flip" data-iconpos="notext"></a><a href="#add_page" id="add_button_' + $.oc + '" data-role="button" data-icon="gear" data-rel="dialog" data-transition="flip" data-iconpos="notext">extra</a><a href="#images" id="images_button_' + $.oc + '" data-role="button" data-icon="check" data-rel="dialog" data-transition="flip" data-iconpos="notext">extra</a><a href="#vote" id="vote_button_' + $.oc + '" data-role="button" data-icon="star" data-rel="dialog" data-transition="flip" data-iconpos="notext"></a></div></div><div id="content_' + $.oc + '" name="content_ ' + $.oc + '" class="edit_inline">   </div><div  id="edit_status_' + $.oc + '" class="edit_status"><div id="edit_metrics_' + $.oc + '" class="edit_metrics">T4|W6|H7|J4|F5</div><div id="edit_icons_' + $.oc + '" class="edit_icons" ><img id="ari_icon_' + $.oc + '" src="img/ari.png" style="margin-left: 5px; height: 16px; width: 16px;"/><img id="rabbit_icon_' + $.oc + '"  src="img/rabbit.png" style="margin-left: 5px; height: 16px; width: 16px;"/><img id="holdhands_icon_' + $.oc + '"  src="img/holdhands.png" style="margin-left: 5px; height: 16px; width: 16px;"/><img id="clock_icon_' + $.oc + '"  src="img/clock.png" style="margin-left: 5px; height: 16px; width: 16px;"/></div>'
+
+       var ido = '#' + $(this).parent().parent().parent().parent().parent().attr("id") + ' div:first';
+       $(objdiv).appendTo($(ido)).trigger('create');
+       $(".edit_inline").editable();
+       $(ido).find('div[data-role=collapsible]').collapsible({refresh:true}); 
+       $(occ).find('div[data-role=controlgroup]').controlgroup({refresh:true}); 
+       $.oc = $.oc+1; // increment the reason counter (rc) for the new reason elements - note count starts at 2 !! //
+    }
+    });
+
+$("#pic_button").live('click', function() {
+    var pic1 = $("#pic_input1").val();
+    $("#picture_url_1").val(pic1);
+    var pic2 = $("#pic_input2").val();
+    $("#picture_url_2").val(pic2);
+    var pic3 = $("#pic_input3").val();
+    $("#picture_url_3").val(pic3);
+    var pic4 = $("#pic_input4").val();
+    $("#picture_url_4").val(pic4);
+    var pic5 = $("#pic_input5").val();
+    $("#picture_url_5").val(pic5);
+    var pic6 = $("#pic_input6").val();
+    $("#picture_url_6").val(pic6);
+    var pic7 = $("#pic_input7").val();
+    $("#picture_url_7").val(pic7);
+    var pic8 = $("#pic_input8").val();
+    $("#picture_url_8").val(pic8);
+    var pic9 = $("#pic_input9").val();
+    $("#picture_url_9").val(pic9);
+    var pic10 = $("#pic_input10").val();
+    $("#picture_url_10").val(pic10);
+    });
+    
+$("#checkrules").live('click', function() {
+    var rc = $.rc;
+    var varid ="";
+    //$("#contention").highlight($.iargu_namespace.textbag_1);
+    for (var ii=0;ii<=rc;ii++)
+       { 
+       //varid = id='#reason_' + ii;
+       var vv= ii+1
+       var tbagvar = "textbag_" + vv;
+       var tbag = window.iargu_globals[tbagvar];
+       $('#reason_' + ii).highlight(tbag); 
+       //for (var iii=0;iii<=rc;iii++)
+       //    tbagg = 'textbag_' + iii;
+       //    $(varid).highlight($.iargu_namespace[iii], {className: 'highlight2'});
+       }
+    //$("#editme1").highlight($.iargu_namespace.textbag_1);
+    //$("#editme2").highlight($.iargu_namespace.textbag_1);
+    //$("#editme3").highlight($.iargu_namespace.textbag_1);
+    //$("#editme2").highlight($.iargu_namespace.textbag_3, {className: 'highlight2'});
+    //$("#editme3").highlight($.iargu_namespace.textbag_2, {className: 'highlight2'});
+    });
+//$("#submit_golci").click(function() {
+//var text1 = document.getElementById('editme1');
+//var text2 = document.getElementById('editme2');
+//var text3 = document.getElementById('editme3');
+//                    if (text1.innerHTML != "") | (text2.innerHTML != "") (text3.innerHTML != "") {
+//                        text1 = text1.innerHTML;
+//                        }else{
+//                        alert("text1 = " & text1 & "text2 = " text2 & "text3 = " text3);
+//                        }
+//var path='/init/default/sim_arg_update?type='+type+'&p2='+text1+'&p3='+valu3+'&p4='+tgl;
+//$.getJSON(path,
+//    function(data){$.iargu_namespace.textbag_1 = data.tb1, $.iargu_namespace.textbag_2 = data.tb2, //$.iargu_namespace.textbag_3 = data.tb3, $.tgl = 1 });
+//});
+</script>
+{% endblock %}
+{% block content %}
+
+        {%- for key, value in gols.items() recursive %} 
+        <div id="collapsible_{{ key }}_{{ loop.index  }}" data-role="collapsible" data-mini="true" data-theme="{{ loop.cycle('c', 'd') }}" data-content-theme="{{ loop.cycle('c', 'd') }}" >
+            <h3>{{ key }} by user on {{ value.date }}</h3>
+            <div style="margin-left: 0px;" >
+                <div data-role="controlgroup" data-type="horizontal" data-mini="true">
+                    <a href="#" id="reason_button_{{ key }}" data-role="button" data-icon="plus" data-iconpos="notext"></a>
+                    <a href="#" id="object_button_{{ key }}" data-role="button" data-icon="minus" data-iconpos="notext"></a>
+                    <a href="#add_fallacy" id="ari_button_{{ key }}" data-role="button" data-icon="alert" data-rel="dialog" data-transition="flip" data-iconpos="notext"></a>
+                    <a href="#add_page" id="add_button_{{ key }}" data-role="button" data-icon="gear" data-rel="dialog" data-transition="flip" data-iconpos="notext">extra</a>
+                    <a href="#images" id="images_button_{{ key }}" data-role="button" data-icon="check" data-rel="dialog" data-transition="flip" data-iconpos="notext">extra</a>
+                    <a href="#vote" id="vote_button_{{ key }}" data-role="button" data-icon="star" data-rel="dialog" data-transition="flip" data-iconpos="notext"></a>
+                </div>
+            </div>
+            <div id="content_{{ key }}" name="content_{{ key }}" class="edit_inline">{{ value.content  }}</div>
+            <div  id="edit_status_{{ key }}" class="edit_status">
+                <div id="edit_metrics_{{ key }}" class="edit_metrics">T4|W6|H7|J4|F5</div>
+                <div id="edit_icons_{{ key }}" class="edit_icons" >
+                <img id="ari_icon_{{ key }}" src="img/ari.png" style="margin-left: 5px; height: 16px; width: 16px;"/>
+                <img id="rabbit_icon_{{ key }}"  src="img/rabbit.png" style="margin-left: 5px; height: 16px; width: 16px;"/>
+                <img id="holdhands_icon_{{ key }}"  src="img/holdhands.png" style="margin-left: 5px; height: 16px; width: 16px;"/>
+                <img id="clock_icon_{{ key }}"  src="img/clock.png" style="margin-left: 5px; height: 16px; width: 16px;"/>
+                </div>
+            </div>
+                {%- if value.subnodes %}
+                    {{ loop(value.subnodes.items())}} 
+                {%- endif %}                                                            
+        </div>                                                                        
+            {%- endfor %}
+
+{% endblock %}
+{% block content2 %}
+    <div data-role="page"  id="add_page">
+    <div data-role="header" data-theme="d">
+		<h1>Add more data</h1>
+    </div>
+    <div data-role="content" data-theme="c">
+		<h3>Add additional data to your post</h3>
+		<a href="#add_images" data-role="button" data-rel="dialog" data-transition="pop" data-theme="d">Add Images to the post</a>       
+		<a href="#" data-role="button" data-rel="dialog" data-transition="slidedown" data-theme="d">Add Location</a>      
+		<a href="#" data-role="button" data-rel="dialog" data-transition="slidedown" data-theme="d">Add Historical Date</a>        
+		<a href="add.html" data-role="button" data-rel="back" data-theme="a">back to golci page</a>    
+	</div>
+</div>
+    </div><!-- /page -->
+    
+<div data-role="page" id="add_images">
+    <div data-role="header" data-theme="d">
+    <h1>Add Images</h1>
+    </div>
+    <div data-role="content" data-theme="c">  
+    <div align="center"><img src="" alt="" width="200px" height="260px" /></div>
+		<h3>Add Images to Post: </h3>
+        <select name="image_name" id="image_name">
+            <option value="image1">Main Image</option>
+            <option value="image2">Image 2</option>
+            <option value="image3">Image 3</option>
+            <option value="image4">Image 4</option>
+            <option value="image5">Image 5</option>
+            <option value="image6">Image 6</option>
+            <option value="image7">Image 7</option>
+            <option value="image8">Image 8</option>
+            <option value="image9">Image 9</option>
+            <option value="image10">Image 10</option>  
+        </select>
+          <label for="pic_input" >Image URL:</label>
+            <input type="text" id="pic_input" name="pic_input"></input>            
+		<a href="#" data-role="button" data-rel="dialog" id="pic_button" data-theme="d">Add Image</a>   
+	</div>
+    </div><!-- /page -->
+    
+<div data-role="page" id="add_fallacy">
+    <div data-role="header" data-theme="d">
+		<h1>Tag Post with an Ari (a fallacy).</h1>
+    </div>
+    <div data-role="content" data-theme="c">
+       <div align="center"><img src="/img/ari.jpg" alt="Hi I'm Ari!" width="200px" height="260px" /></div>
+		<h3>Select Ari type: </h3>
+        <select name="fallacy_name" id="fallacy_name">
+            {% for b in aris %}
+            <option value="{{b.key().id()}}">{{b.ari}}</option>
+            {% endfor %}   
+        </select>
+          <label for="ari" >Ari:</label>
+            <textarea id="ari" name="ari" rows="3" cols="75"></textarea>            
+		<a href="#" id="add_ari_btn" name="add_ari_btn" data-role="button" data-theme="a">Add Ari</a>    
+	</div>
+</div>
+    </div><!-- /page -->
+{% endblock %}

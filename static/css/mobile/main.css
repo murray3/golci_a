@@ -1,0 +1,30 @@
+body {
+    visibility: hidden;
+}
+
+ul.li.hidden_elements{
+    display: none;
+}
+.messages {
+    border: 1px gray solid;
+    background: #dedede;
+    line-height: 2em;
+    padding: 0 1em;
+    display: none;
+}
+.messages.error{
+    display: block;
+    color: red;
+}
+.messages.info{
+    display: block;
+    color: green;
+}
+
+/* Jquery Validate */
+
+label.error {
+    color: red;
+    padding: .4em 0;
+    display: block;
+}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block header %}
+    <h1>simple arg</h1>
+{% endblock %}
+
+{% block content %}
+    {% for c in cons %}
+      {% if c.author %}
+        <b>{{ c.author.nickname() }}</b> wrote:
+      {% else %}
+       An anonymous person wrote:
+      {% endif %}
+      <blockquote>{{ c.content }}</blockquote>
+    {% endfor %}
+
+    <form action="/postgolci" method="post">
+      <div><textarea name="content" rows="3" cols="60"></textarea></div>
+      <div><input type="submit" value="Submit"></div>
+    </form>
+
+    <a href="{{ url|safe }}">{{ url_linktext }}</a>
+
+{% endblock %}

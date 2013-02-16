@@ -1,0 +1,652 @@
+# -*- coding: utf-8 -*-
+
+__author__ = 'Chris Murray - cjjmurray@gmail.com'
+__website__ = 'www.golci.com'
+
+import logging
+# if os.environ.get(’SERVER_SOFTWARE’, ’’).startswith(’Dev’):
+    # import secrets_local
+# else:
+import secrets
+import re
+
+from ndb import Key
+
+import webapp2
+from webapp2_extras import auth, sessions, jinja2
+from jinja2.runtime import TemplateNotFound
+from jinja2 import Template
+
+from simpleauth import SimpleAuthHandler
+
+from models import User
+from models import Contention
+from models import Elements
+from models import Branch
+from models import Ari
+from models import Ari_types
+from models import golci_link
+from models import golci_history
+
+import json
+
+from datetime import datetime
+from lib import functions
+from google.appengine.ext import db
+from google.appengine.api import urlfetch
+
+from wtforms import Form
+from wtforms import fields
+from wtforms import validators
+
+def user_required(handler):
+    """
+         Decorator for checking if there's a user associated with the current session.
+         Will also fail if there's no session present.
+    """
+
+    def check_login(self, *args, **kwargs):
+        auth = self.auth
+        if not auth.get_user_by_session():
+            # If handler has no login_url specified invoke a 403 error
+            try:
+                self.redirect('/login')
+            except (AttributeError, KeyError), e:
+                self.abort(403)
+        else:
+            return handler(self, *args, **kwargs)
+
+    return check_login
+
+def prefetch_refprops(entities, *props):
+    fields = [(entity, prop) for entity in entities for prop in props]
+    ref_keys = [prop.get_value_for_datastore(x) for x, prop in fields]
+    ref_entities = dict((x.key(), x) for x in db.get(set(ref_keys)))
+    for (entity, prop), ref_key in zip(fields, ref_keys):
+        prop.__set__(entity, ref_entities[ref_key])
+    return entities
+    
+class BaseRequestHandler(webapp2.RequestHandler):
+  def dispatch(self):
+    # Get a session store for this request.
+    self.session_store = sessions.get_store(request=self.request)
+    
+    try:
+      # Dispatch the request.
+      webapp2.RequestHandler.dispatch(self)
+    finally:
+      # Save all sessions.
+      self.session_store.save_sessions(self.response)
+  
+  @webapp2.cached_property    
+  def jinja2(self):
+    """Returns a Jinja2 renderer cached in the app registry"""
+    return jinja2.get_jinja2(app=self.app)
+    
+  @webapp2.cached_property
+  def session(self):
+    """Returns a session using the default cookie key"""
+    return self.session_store.get_session()
+    
+  @webapp2.cached_property
+  def auth(self):
+      return auth.get_auth()
+  
+  @webapp2.cached_property
+  def current_user(self):
+    """Returns currently logged in user"""
+    user_dict = self.auth.get_user_by_session()
+    return self.auth.store.user_model.get_by_id(user_dict['user_id'])
+      
+  @webapp2.cached_property
+  def logged_in(self):
+    """Returns true if a user is currently logged in, false otherwise"""
+    return self.auth.get_user_by_session() is not None
+  
+      
+  def render(self, template_name, template_vars={}):
+    # Preset values for the template
+    values = {
+      'url_for'    : self.uri_for,
+      'logged_in'  : self.logged_in
+    }
+    
+    # Add manually supplied template values
+    values.update(template_vars)
+    
+    # read the template or 404.html
+    try:
+      self.response.write(self.jinja2.render_template(template_name, **values))
+    except TemplateNotFound:
+      self.abort(404)
+
+  def head(self, *args):
+    """Head is used by Twitter. If not there the tweet button shows 0"""
+    pass
+    
+    
+class RootHandler(BaseRequestHandler):
+  def get(self):
+    """Handles default langing page"""
+    self.render('index.html')
+    
+# class SimpleArgHandler(BaseRequestHandler):
+  # def get(self):
+    # """Handles default langing page"""
+    # self.render('argu_form.html')
+    
+class LoginHandler(BaseRequestHandler):
+  def get(self):
+    """Handles default langing page"""
+    self.render('mob_login.html')
+    
+class ProfileHandler(BaseRequestHandler):
+  def get(self):
+    """Handles GET /profile"""    
+    if self.logged_in:
+      self.render('profile.html', {
+        'user': self.current_user, 'session': self.auth.get_user_by_session()
+      })
+    else:
+      self.redirect('/')
+
+
+class AuthHandler(BaseRequestHandler, SimpleAuthHandler):
+  """Authentication handler for OAuth 2.0, 1.0(a) and OpenID."""
+  
+  USER_ATTRS = {
+    'google'   : {
+      'picture': 'avatar_url',
+      'name'   : 'name',
+      'link'   : 'link'
+    },
+    'facebook' : {
+      'id'     : lambda id: ('avatar_url', 'http://graph.facebook.com/{0}/picture?type=large'.format(id)),
+      'name'   : 'name',
+      'link'   : 'link'
+    },
+    'windows_live': {
+      'avatar_url': 'avatar_url',
+      'name'      : 'name',
+      'link'      : 'link'
+    },
+    'twitter'  : {
+      'profile_image_url': 'avatar_url',
+      'screen_name'      : 'name',
+      'link'             : 'link'
+    },
+    'linkedin' : {
+      'picture-url'       : 'avatar_url',
+      'first-name'        : 'name',
+      'public-profile-url': 'link'
+    },
+    'openid'   : {
+      'id'      : lambda id: ('avatar_url', '/img/missing-avatar.png'),
+      'nickname': 'name',
+      'email'   : 'link'
+    }
+  }
+  
+  def _on_signin(self, data, auth_info, provider):
+    """Callback whenever a new or existing user is logging in.
+     data is a user info dictionary.
+     auth_info contains access token or oauth token and secret.
+    """
+    auth_id = '%s:%s' % (provider, data['id'])
+    logging.info('Looking for a user with id %s' % auth_id)
+    
+    user = self.auth.store.user_model.get_by_auth_id(auth_id)
+    if user:
+      logging.info('Found existing user to log in')
+      # existing user. just log them in.
+      self.auth.set_session(
+        self.auth.store.user_to_dict(user)
+      )
+      
+    else:
+      # check whether there's a user currently logged in
+      # then, create a new user if nobody's signed in, 
+      # otherwise add this auth_id to currently logged in user.
+      if self.logged_in:
+        logging.info('Updating currently logged in user')
+        
+        u = self.current_user
+        u.auth_ids.append(auth_id)
+        u.populate(**self._to_user_model_attrs(data, self.USER_ATTRS[provider]))
+        u.put()
+        
+      else:
+        logging.info('Creating a brand new user')
+        
+        ok, user = self.auth.store.user_model.create_user(
+          auth_id, **self._to_user_model_attrs(data, self.USER_ATTRS[provider])
+        )
+        
+        if ok:
+          self.auth.set_session(
+            self.auth.store.user_to_dict(user)
+          )
+      
+    # show them their profile data
+    self.redirect('/profile')
+
+  def logout(self):
+    self.auth.unset_session()
+    self.redirect('/')
+    
+  def _callback_uri_for(self, provider):
+    return self.uri_for('auth_callback', provider=provider, _full=True)
+    
+  def _get_consumer_info_for(self, provider):
+    """Returns a tuple (key, secret) for auth init requests."""
+    return secrets.AUTH_CONFIG[provider]
+    
+  def _to_user_model_attrs(self, data, attrs_map):
+    user_attrs = {}
+    for k, v in data.iteritems():
+      if k in attrs_map:
+        key = attrs_map[k]
+        if isinstance(key, str):
+          user_attrs.setdefault(key, v)
+        else:
+          user_attrs.setdefault(*key(v))
+          
+    return user_attrs
+    
+    
+class ImageHandler(webapp2.RequestHandler):
+    def get(self):
+        #logging.info("T!!!!!!!!!!!!!!!!!!!!!!HE value of contention is %s", self.request.get("entity_id"))
+        contention_ID = self.request.get("entity_id")
+        con = Contention.get_by_id(int(contention_ID))
+        #contention = db.get(self.request.get("entity_id"))
+        #if (contention and contention.image):
+        self.response.headers['Content-Type'] = 'image/jpeg'
+        self.response.out.write(con.image)
+        #else:
+            #self.redirect('/static/ok.png')
+        
+class IndexHandler(BaseRequestHandler):
+    def get(self):
+        contention_query =  Contention.all().order('-date')
+        cons = contention_query.fetch(10)
+        count = "0" #int(cons.count(10))+1
+        branch_query =  Branch.all().order('branch')
+        branches = branch_query.fetch(10)
+        
+        # if users.get_current_user():
+            # url = users.create_logout_url(self.request.uri)
+            # url_linktext = 'Logout'
+        # else:
+            # url = users.create_login_url(self.request.uri)
+            # url_linktext = 'Login'
+
+
+        params = {
+                'cons': cons,
+                'branches': branches,
+                'count': count,
+                  }
+        return self.render('index.html', params)
+        
+class latestgolciHandler(BaseRequestHandler):
+    def get(self):
+        contention_query =  Contention.all().order('-date')
+        latest = contention_query.fetch(10)
+        count = int(cons.count(10))+1
+        data = {
+            "latest" : latest,
+            "count" : count,
+            }
+        self.response.out.write(json.dumps(data)) 
+
+class SimpleArgHandler(BaseRequestHandler):
+    #@user_required
+    def get(self):
+        edit = self.request.get('edit')
+        type = self.request.get('type')      
+        #contention_query =  Contention.all().order('-date')
+        #cons = contention_query.fetch(10)
+        #count = int(cons.count(10))+1
+        branch_query =  Branch.all().order('branch')
+        branches = branch_query.fetch(10)
+        ari_query =  Ari_types.all().order('ari')
+        aris = ari_query.fetch(50)
+        if edit=="0" or edit=="":
+            params = {
+                'branches' : branches,
+                'aris' : aris,
+                  }
+        elif edit=="1":
+            contention_ID = self.request.get('c_id')
+            con = Contention.get_by_id(int(contention_ID))
+            top_elems = con.top_elems.fetch(999)                
+            params = {
+                'branches': branches,
+                'con': con,
+                'elems': top_elems,
+                'aris' : aris,
+                #'count': count,
+                  }
+        elif edit=="2":
+            contention_ID = self.request.get('c_id')
+            con = Contention.get_by_id(int(contention_ID))
+            elem_ID = self.request.get('e_id')
+            elem = Elements.get_by_id(int(elem_ID)) 
+            sub_elems = elem.sub_elems.fetch(999)            
+            params = {
+                'branches': branches,
+                'con': con,
+                'elem': elem,                
+                'elems': sub_elems,
+                'aris' : aris,
+                #'count': count,
+                  }
+
+            
+        
+        # if users.get_current_user():
+            # url = users.create_logout_url(self.request.uri)
+            # url_linktext = 'Logout'
+        # else:
+            # url = users.create_login_url(self.request.uri)
+            # url_linktext = 'Login'
+
+        return self.render('argu_form.html', params)
+        
+class Postgolci(BaseRequestHandler):
+    @user_required
+    def post(self):
+        branch_name = self.request.get('branch_name')
+        picture_url_1 = self.request.get('picture_url_1')
+        branch_q = db.GqlQuery("SELECT * FROM Branch WHERE branch = :1", branch_name)
+        branch = branch_q.get()
+        #branch = Branch(parent=branch_key('Business'))
+        #branch_key = branch.Key().id()
+        #b_key = db.Key.from_path('Branch', branch)
+
+        c = Contention(branch_key=branch)
+
+
+        # if users.get_current_user():
+            # c.author = users.get_current_user()
+            
+        c.content = self.request.get('content')
+        c.branch_name = branch_name
+        #c.image_URL = picture_url
+        c.image = db.Blob(urlfetch.Fetch(picture_url_1).content)
+        c.put()
+        reason = ['r1','r2','r3','r4','r5','r6','r7','r8','r9','r10']
+        objection = ['o1','o2','o3','o4','o5','o6','o7','o8','o9','o10']
+        r1 = Elements(contention_key=c)
+        r1.text = self.request.get('reason_1')
+        r1.put()
+        
+        self.redirect('/contention?contention=%s' % c.key().id())
+  
+    @user_required    
+    def get(self):
+        c = Contention()
+
+        # if users.get_current_user():
+            # c.author = users.get_current_user()
+            
+        c.content = self.request.get('text1')
+        c.put()
+        #self.redirect('/index')
+        data = {
+            "content" : c.content,
+            "author" : c.author.nickname(),
+            }
+        self.response.out.write(json.dumps(data)) 
+        
+    def branch_key(branch_name):
+        """Constructs a datastore key for a Contention entity with branch_name."""
+        return db.Key.from_path('Branch', branch_name or 'default_branch')
+        
+class HomeMenuHandler(BaseRequestHandler):
+    def get(self):
+        branch_query =  Branch.all().order('branch')
+        branches = branch_query.fetch(10)
+
+        params = {'branches':branches}
+        return self.render('menu.html', params)
+        
+class BranchHandler(BaseRequestHandler):
+    def get(self):
+        #branch = self.request.get('branch')
+        branch_name = self.request.get('branch_name')
+        #branch_key = db.Key.from_path(branch)
+        branch_q = db.GqlQuery("SELECT * FROM Branch WHERE branch = :1", branch_name)
+        branch = branch_q.get()
+        
+        #contention_query =  Contention.all().order('date')
+        cons = branch.contentions.fetch(20)
+        count = int(cons.count(20))+1
+        # if users.get_current_user():
+            # url = users.create_logout_url(self.request.uri)
+            # url_linktext = 'Logout'
+        # else:
+            # url = users.create_login_url(self.request.uri)
+            # url_linktext = 'Login'
+
+
+        params = {
+                'cons':cons,
+                'branch_name':branch_name,
+                'count': count,
+                }
+        return self.render('branch.html', params)
+        
+class ContentHandler(BaseRequestHandler):
+    def get(self):
+        #branch = self.request.get('branch')
+        contention_ID = self.request.get('con_id')
+        #con_key = db.Key.from_path('Contention',int(contention_ID))
+        con = Contention.get_by_id(int(contention_ID))
+        #con_q = db.GqlQuery("SELECT * from Contention where __key__ = key; key=KEY('Contention', contention_ID))
+        #con = con_q.get()
+        elems=[]
+        count=0
+        #contention_query =  Contention.all().order('date')
+        if con:
+            elems = con.elements.fetch(50)
+            count = int(elems.count(20))+1
+        # if users.get_current_user():
+            # url = users.create_logout_url(self.request.uri)
+            # url_linktext = 'Logout'
+        # else:
+            # url = users.create_login_url(self.request.uri)
+            # url_linktext = 'Login'
+
+        dictionary={'C1': {'C2': {'C3': {}}}}
+        params = {
+                'con':con,
+                'elems':elems,
+                'count': count,
+                'dictionary':dictionary
+                }
+        return self.render('contention.html', params)
+        
+class TreeJsonHandler(BaseRequestHandler):
+    def treeh(self,parents,childs):
+        od={}
+        od1={}
+        pdict={}
+        tog=1
+        for p in parents:
+            oname='name_'+str(tog)
+            ochildren='children_'+str(tog)
+            pid=p.key().id()
+            kids=[]
+            for c in childs:
+                if int(c.parent_id)==int(pid):
+                    kids.append(c)
+            kids.sort()
+            tgl=1
+            for k in kids:
+                kk=[]
+                kk.append(k)
+                iname='name_'+str(tgl)
+                ichildren='children_'+str(tgl)
+                pdict[iname]=str(k.content)                       
+                pdict[ichildren]=[self.treeh(kk,childs)]
+                tgl=tgl+1
+            od[oname]=p.content
+            od[ochildren]=[pdict]
+            tog=tog+1             
+        return od
+        
+    def treestring(self,tg,tgl,parents,childs):
+        stringy=""
+        tog=0
+        for p in parents:       
+            pstring=""
+            #if not tog == 0 or len(parents) == tog:
+                #pstring = ',' + pstring
+            pstring = pstring +'{\"name\": \"' + p.content +'\"'
+            pid=p.key().id()
+            cstring = ',\"children\": ['
+            test_cstring=0
+            kids=[]
+            for c in childs:
+                if int(c.parent_id)==int(pid):
+                    test_cstring=1
+                    kids.append(c)
+            kids.sort()
+            ccstring=""
+            togg=0
+            togl=len(kids)
+            if test_cstring==1:
+                for k in kids:
+                    kk=[]
+                    kk.append(k)
+                    ccstring = ccstring + self.treestring(0,togl,kk,childs)
+                    if not togg == togl-1:
+                        cccstring=","
+                    else:
+                        cccstring="" 
+                    ccstring = ccstring + cccstring
+                    togg=togg+1                    
+                ccstring = cstring + ccstring + ']'
+            pstring = pstring + ccstring  + '}'
+            if not len(parents) == tog+1:
+                pstring = pstring + ',' 
+            tog=tog+1 
+            stringy= stringy + pstring
+        return stringy
+        
+    def get(self):
+        #branch = self.request.get('branch')
+        contention_ID = self.request.get('con_id')
+        #con_key = db.Key.from_path('Contention',int(contention_ID))
+        con = Contention.get_by_id(int(contention_ID))
+        #con_q = db.GqlQuery("SELECT * from Contention where __key__ = key; key=KEY('Contention', contention_ID))
+        #con = con_q.get()
+        elems=[]
+        count=0
+        #contention_query =  Contention.all().order('date')
+        if con:
+            elems = con.elements.fetch(50)
+            count = int(elems.count(20))+1
+        tl=[]
+        sl=[]
+        for f in elems:
+            if f.top_level == 1:
+                tl.append(f)
+            else:
+                sl.append(f)
+        #gols=self.treeh(tl,sl)
+        # for p in tl:
+            # od={}
+            # od["C1"]=p.content
+            # gols.append(self.flatpack(p,sl,od,2))
+
+        #self.response.out.write(json.dumps(gols))
+        stringy = ""
+        vari = '{\"name\": \"' + con.content + '\",\"children\": [' + self.treestring(0,len(tl),tl,sl) + ']}'
+                
+        params = { 
+                 'vari':vari,
+                 'con':con,
+                 'tl':tl,
+                 'sl':sl
+                 }
+        #return tmpl.render()
+        self.render('test1.json', params)
+        
+class TreeHandler(BaseRequestHandler):        
+    def get(self):
+        """Handles tree view page"""
+        contention_ID = self.request.get('con_id')
+        #con_key = db.Key.from_path('Contention',int(contention_ID))
+        con = Contention.get_by_id(int(contention_ID))
+        params = { 
+                 'con':con
+                 }
+        self.render('tree-2.html', params)
+
+        
+class DynamicHandler(BaseRequestHandler):
+    def ins(self,parents,children):
+        od={}
+        for p in parents:
+            pdict={}
+            pdict['top_level']=str(p.top_level)
+            pdict['parent_id']=str(p.parent_id)
+            pdict['content']=str(p.content)
+            pdict['author']=str(p.author)
+            pdict['element_type']=str(p.element_type)
+            pdict['description']=str(p.description)       
+            pdict['date']=str(p.date)
+            pid=p.key().id()
+            tgl=0
+            for c in children:
+                if c.parent_id==pid:
+                    if tgl==0:
+                       kids=[]
+                       kids.append(c)
+                       tgl=1
+                       #children.remove(c)
+                    else:
+                       kids.append(c)
+                       #children.remove(c)
+                    pdict['subnodes']=self.ins(kids,children)
+            od[str(pid)]=pdict       
+        return od
+        
+    def get(self):
+        #branch = self.request.get('branch')
+        contention_ID = self.request.get('con_id')
+        #con_key = db.Key.from_path('Contention',int(contention_ID))
+        con = Contention.get_by_id(int(contention_ID))
+        #con_q = db.GqlQuery("SELECT * from Contention where __key__ = key; key=KEY('Contention', contention_ID))
+        #con = con_q.get()
+        elems=[]
+        count=0
+        #contention_query =  Contention.all().order('date')
+        if con:
+            elems = con.elements.fetch(50)
+            count = int(elems.count(20))+1
+        tl=[]
+        sl=[]
+        for f in elems:
+            if f.top_level == 1:
+                tl.append(f)
+            else:
+                sl.append(f)
+        # if users.get_current_user():
+            # url = users.create_logout_url(self.request.uri)
+            # url_linktext = 'Logout'
+        # else:
+            # url = users.create_login_url(self.request.uri)
+            # url_linktext = 'Login'
+        gols=self.ins(tl,sl)
+        #listy={'Contention': {'Reason_1': {'Reason_1a': {'Reason_1b': {}}},'Reason_2': {}}}
+        params = {
+                'con':con,
+                'elems':elems,
+                'count': count,
+                'gols':gols
+                }
+        return self.render('dynamic.html', params)

@@ -1,0 +1,51 @@
+
+ul.hidden_elements{
+    display: none;
+}
+.ui-grid-a .ui-block-f{ width: 33%;}
+.ui-grid-a .ui-block-g { width: 33%;}
+.ui-grid-a .ui-block-h{ width: 33%;}
+
+.nav_right {
+    background: url("/img/sprite.png") no-repeat scroll -67px -32px #707070;
+    right: 0;
+    cursor: default;
+    width: 47px;
+    bottom: 16px;
+    height: 48px;
+    overflow: hidden;
+    position: absolute;
+    color: #FFFFFF;
+    filter:alpha(opacity=50); opacity:0.5;
+    
+}
+.nav_left {
+    background: url("/img/sprite.png") no-repeat scroll -3px -32px #707070;
+    left: 0;
+    cursor: default;
+    width: 47px;
+    bottom: 16px;
+    height: 48px;
+    overflow: hidden;
+    position: absolute;
+    color: #FFFFFF;
+    filter:alpha(opacity=50); opacity:0.5;
+    
+}
+
+div.slider { height: 1%; overflow:hidden; padding: 0 0 10px 0; }
+div.viewport1 { width: 240px; height: 125px; float: left; overflow: hidden; position: relative; }
+ul.overview1 { list-style: none; position: absolute; width: 240px; left: 0 top: 0; }
+ul.overview1 li{ float: left; margin: 0 20px 0 0; padding: 1px; height: 121px; border: 1px solid #dcdcdc; width: 236px;}
+
+#dvWrapper {
+padding:0px;
+margin:0px;
+overflow:visible;
+}
+
+#wrapper {
+padding:0px;
+margin:0px;
+overflow:visible;
+}

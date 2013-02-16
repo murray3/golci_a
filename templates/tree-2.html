@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <title>{% block title %}golci{% endblock %}</title>
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <meta name="keywords" content="" />
+
+    <!-- Mobile viewport optimized: h5bp.com/viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet"  href="/mobile/jquery.mobile-1.1.1.css" />
+    <style type="text/css">
+
+.node rect {
+  cursor: pointer;
+  fill: #fff;
+  fill-opacity: .5;
+  stroke: #3C5760;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  font: 10px sans-serif;
+  pointer-events: none;
+}
+
+path.link {
+  fill: none;
+  stroke: #FA8600;
+  stroke-width: 1.5px;
+}
+
+    .highlight {
+    background-color: #FFFF88;
+    }
+    .highlight2 {
+    background-color: #EDDF9B;
+    }
+    .highlight3 {
+    background-color: #FFB900;
+    }
+
+div.edit_inline {
+    background-color: #FFFFFF;
+    border: 0.5px solid #CCCCCC;
+    border-top: 2px solid #CCCCCC;
+    margin: 0px;
+    padding: 3px;
+
+    min-height:30px;
+    font: lighter 10pt/13pt Helvetica,sans-serif; 
+
+    
+    width: 100%;
+    -moz-transition: height 200ms linear 0s;
+    text-shadow: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    padding: 0.4em;
+}
+ textarea { 
+    width: 100%;
+    min-height: 25px;
+    border-style: none; 
+    border-color: Transparent; 
+    overflow: auto;  
+    font: normal 12pt/14pt Serif;    
+  }
+
+    </style>
+    <!-- JavaScript at the bottom for fast page loading -->
+
+    <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="/js/libs/jquery-1.6.4.min.js"><\/script>')</script>
+    <script src="/mobile/jquery.mobile-1.1.1.min.js"></script>
+    <script type="text/javascript" src="http://dev.jtsage.com/jquery.mousewheel.min.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.js"></script>
+    <script src="/js/libs/jquery-ui-1.8.7.custom.min.js"></script>
+    <!-- scripts concatenated and minified via build script -->
+    <script src="/js/plugins.js"></script>
+    <script src="/js/script.js"></script>
+    <script src="/js/libs/jquery.tinycarousel.js"></script>
+     <script type="text/javascript" src="/js/libs/d3.v2.js"></script>
+    <script type="text/javascript" src="/js/libs/underscore.js"></script>
+    <script type="text/javascript" src="/js/libs/underscore.deepextend.js"></script>
+    <script type="text/javascript" src="/js/libs//underscore.nest.js"></script>
+    <script src="/js/libs/jquery.highlight.js"></script>
+<script type="text/javascript">
+/* jQuery editable Copyright Dylan Verheul <dylan@dyve.net>
+ * Licensed like jQuery, see http://docs.jquery.com/License
+ */
+//alert("test editavble");
+$.fn.editable = function(url, options) {
+	// Options
+	options = arrayMerge({
+		"url": url,
+		"paramName": "q",
+		"callback": null,
+		"saving": "saving ...",
+		"type": "textarea",
+		"submitButton": 1,
+		"delayOnBlur": 0,
+		"extraParams": {},
+		"editClass": null
+	}, options);
+	// Set up
+	this.click(function(e) {
+			if (this.editing) return;
+			if (!this.editable) this.editable = function() {
+				var me = this;
+                var myid = $(this).attr('id');
+				me.editing = true;
+				me.orgHTML = $(me).html();
+                me.orgHTML = me.orgHTML.replace(/<(?:.|\n)*?>/gm, '');
+                var exTXT = me.orgHTML
+				me.innerHTML = "";
+				if (options.editClass) $(me).addClass(options.editClass);
+				var f = document.createElement("form");
+				var i = createInputElement(me.orgHTML);
+				var t = 0;
+				f.appendChild(i);
+				if (options.submitButton) {
+					var b = document.createElement("input");
+					b.type = "submit";
+					b.value = "OK";
+					f.appendChild(b);
+				}
+				me.appendChild(f);
+                f.width = "100%";
+                i.width = "100%";
+				i.focus();
+				$(i).blur(
+						options.delayOnBlur ? function() { t = setTimeout(reset, options.delayOnBlur) } : reset
+					)
+					.keydown(function(e) {
+						if (e.keyCode == 27) { // ESC
+							e.preventDefault;
+							reset
+						}
+					});
+				$(f).submit(function(e) {
+					if (t) clearTimeout(t);
+					e.preventDefault();
+					var p = {};
+					p[i.name] = $(i).val();
+					$(me).html(options.saving).load(options.url, arrayMerge(options.extraParams, p), function() {
+						// Remove script tags
+						me.innerHTML = me.innerHTML.replace(/<\s*script\s*.*>.*<\/\s*script\s*.*>/gi, "");
+						// Callback if necessary
+						if (options.callback) options.callback(me); 
+						// Release
+						me.editing = false;						
+					});
+				});
+				function reset() {
+		
+        // me.innerHTML = me.orgHTML; edited by cjm
+                    me.innerHTML = $(i).val();
+                    var rc = $.rc;
+                    var oc = $.oc;
+                    var vals = {};
+                    if (myid == "content_0") {
+                        if ($(i).val() != "") {
+                            vals[0] = me.innerHTML.replace(/<\s*script\s*.*>.*<\/\s*script\s*.*>/gi, "");
+                        } else {
+                            vals[0] = " ";
+                            }
+                    } else {
+                    var con_0 = document.getElementById("content_0");
+                    vals[0] = con_0.innerHTML.replace(/<\s*script\s*.*>.*<\/\s*script\s*.*>/gi, "");
+                    }
+                    for (var ii=1;ii<=rc;ii++) {
+                        var reasonvar = "reason_" + ii;
+                        vals[ii] = document.getElementById(reasonvar);
+                        if (vals[ii].innerHTML != "") {
+                            vals[ii] = vals[ii].innerHTML;
+                        } else {
+                            vals[ii] = " ";
+                        }
+                        }
+                    for (var ii=1;ii<=oc;ii++) {
+                        var objectvar = "objection_" + ii;
+                        vals[ii+10] = document.getElementById(objectvar);
+                        if (vals[ii+10].innerHTML != "") {
+                            vals[ii+10] = vals[ii+10].innerHTML;
+                        } else {
+                            vals[ii+10] = " ";
+                        }        
+                        }
+                    //}
+                        
+                    // var valu1 = document.getElementById('reason_li_0');
+                    // if (valu1.innerHTML != "") {
+                        // valu1 = valu1.innerHTML;
+                        // }else{
+                        // valu1 = " ";
+                        // }
+                    // var valu2 = document.getElementById('reason_li_1');
+                    // if (valu2.innerHTML != "") {
+                        // valu2 = valu2.innerHTML;
+                        // }else{
+                        // valu2 = " ";
+                        // }
+                    // var valu3 = document.getElementById('reason_li_2');
+                    // if (valu3.innerHTML != "") {
+                        // valu3 = valu3.innerHTML;
+                        // }else{
+                        // valu3 = " ";
+                        // }
+                    // var rc = $.rc;
+                    // for (var ii=1;ii<=rc;ii++)
+                        // { 
+                        // var myidd = 'reason_' + ii;
+                        // alert(myid + " " + myidd)
+                        // if (myid == myidd) { 
+                            // valu[ii] = $(i).val();
+                        // }
+                        // }
+                    //alert(valu[1] + valu[2] + valu[3]);
+					if (options.editClass) $(me).removeClass(options.editClass);
+					me.editing = false;
+                    if ($(i).val() != exTXT) {
+                        // for (var ii=0;ii<=rc;ii++)
+                        // { 
+                        // valu[ii] = valu[ii].replace(/ /g,"_"); 
+                        // }
+                        //valu1 = valu1.replace(/ /g,"_"); 
+                        //valu2 = valu2.replace(/ /g,"_");
+                        //valu3 = valu3.replace(/ /g,"_");
+                        var tgl = $.tgl
+                        var path='/textmatch?con='+vals[0]+'&r1='+vals[1]+'&r2='+vals[2]+'&r3='+vals[3]+'&r4='+vals[4]+'&r5='+vals[5]+'&r6='+vals[6]+'&r7='+vals[7]+'&r8='+vals[8]+'&r9='+vals[9]+'&r10='+vals[10]+'&o1='+vals[11]+'&o2='+vals[12]+'&o3='+vals[13]+'&o4='+vals[14]+'&o5='+vals[15]+'&o6='+vals[16]+'&o7='+vals[17]+'&o8='+vals[18]+'&o9='+vals[19]+'&o10='+vals[20]+'&tgl='+tgl;  
+                        $.getJSON(path,
+                           function(data){window.iargu_globals.textbag_1 = data.tb1, window.iargu_globals.textbag_2 = data.tb2, window.iargu_globals.textbag_3 = data.tb3, $.tgl = 1 });
+                           
+                    }
+				}
+			};
+			this.editable();	
+            //var valu=$('.edit_inline').innerHTML;           
+            //var path='/init/default/test3/'+valu;                
+            //$.getJSON(path,
+            //function(data){ $('.edit_inline').highlight(data)});
+		});
+	// Don't break the chain
+	return this;
+	// Helper functions
+	function arrayMerge(a, b) {
+		if (a) {
+			if (b) for(var i in b) a[i] = b[i];
+			return a;
+		} else {
+			return b;		
+		}
+	};
+	function createInputElement(v) {
+		if (options.type == "textarea") {
+			var i = document.createElement("textarea");
+			options.submitButton = false;
+			options.delayOnBlur = 100; // delay onBlur so we can click the button
+		} else {
+			var i = document.createElement("input");
+			i.type = "text";
+		}
+		$(i).val(v);
+		i.name = options.paramName;
+		return i;
+	}
+};
+</script>
+    <script type="text/javascript">
+   $(document).ready(function() {
+    $.testvar = " " ;
+    $.rc=0;
+    window.iargu_globals = { 
+    textbag_1 : ['tb1','tb1'], 
+    textbag_2 : ['tb2','tb2'],
+    textbag_3 : ['tb3','tb3'],
+    }; 
+    $(".edit_inline").editable();
+    });
+
+    </script>
+  </head>
+    <div data-role="page"  data-theme="c" id="mob_page">
+
+    <div data-role="header" id="header" data-position="fixed" data-fullscreen="true" data-tap-toggle="false">
+        <h1>golci</h1><a href="/login">Login</a><a style="color:red;"href="/menu" data-icon="gear" class="ui-btn-right">Menu</a>
+    </div><!-- /header -->
+    <div> {% block swipe %}{% endblock %}    </div>
+        <div data-role="content">
+            <p class="messages {{ level }}">{{ messages }}</p>
+            {% block content %}
+    <ul data-role="listview">
+        <li>
+            <div style="position:relative; top:50px;"><div id="chart"></div></div>
+        </li>    
+    </ul>
+    <script type="text/javascript">
+ var w = 960,
+    h = 1800,
+    i = 0,
+    barHeight = 20,
+    barWidth = w * .8,
+    duration = 400,
+    root;
+
+var tree = d3.layout.tree()
+    .size([h, 100]);
+
+var diagonal = d3.svg.diagonal()
+    .projection(function(d) { return [d.y, d.x]; });
+
+var vis = d3.select("#chart").append("svg:svg")
+    .attr("width", w)
+    .attr("height", h)
+    .append("svg:g")
+    .style("color", "black")
+    .attr("transform", "translate(20,30)");
+//d3.select("body").style("background-color", "black");
+    
+function checkgolci() {    
+d3.json("/jsontree?con_id={{ con.key().id() }}", function(json) {
+  json.x0 = 0;
+  json.y0 = 0;
+  data=json
+  update(root = data,parseInt(data.total));
+
+});
+};
+
+
+checkgolci()
+//setInterval(function() {
+//checkgolci()
+    //call $.ajax here
+//}, 10000); //10 seconds
+
+function update(source,_step) {
+    //root.children.filter(function(d) { return d.step <= _step; });
+    // Compute the flattened node list. TODO use d3.layout.hierarchy.
+    var nodes = tree.nodes(root).filter(function(d) { return d.step <= _step; });
+
+    // Compute the "layout".
+    nodes.forEach(function(n, i) {
+        n.x = i * barHeight;
+    });
+
+    // Update the nodes…
+    var node = vis.selectAll("g.node").data(nodes, function(d) {
+           return d.id || (d.id = ++i);
+    });
+
+    var nodeEnter = node.enter().append("svg:g").attr("class", "node").attr("transform", function(d) {
+        return "translate(" + source.y0 + "," + source.x0 + ")";
+    }).style("opacity", 1e-6);
+
+    // Enter any new nodes at the parent's previous position.
+    nodeEnter.append("svg:rect").attr("y", -barHeight / 2).attr("height",  barHeight).attr("width", barHeight).attr("fill","white").on("click", function(d) {
+        if (d.selected) {
+            d.selected = false;
+            d3.select(this).style("fill", "white");
+        } else {
+            d.selected = true;
+            d3.select(this).style("fill", "black");
+            insert_child(source,source,d.id,"test","test",1,0);
+}
+      //  printSelectedNodes();
+        
+        update(source,data.this_step);
+    });
+    nodeEnter.append("svg:rect").attr("y", -barHeight / 2).attr("x", barHeight+1).attr("height", barHeight).attr("width", barWidth).style("fill", color).on("click", click);
+    nodeEnter.append("svg:text").attr("dy", 3.5).attr("dx", barHeight + 5).text(function(d) {
+        return d.name;
+    });
+
+    // Add checkbox
+    
+
+    // Transition nodes to their new position.
+    nodeEnter.transition().duration(duration).attr("transform", function(d) {
+        return "translate(" + d.y + "," + d.x + ")";
+    }).style("opacity", 1);
+
+    node.transition().duration(duration).attr("transform", function(d) {
+        return "translate(" + d.y + "," + d.x + ")";
+    }).style("opacity", 1).select("rect").style("fill", color);
+
+    // Transition exiting nodes to the parent's new position.
+    node.exit().transition().duration(duration).attr("transform", function(d) {
+        return "translate(" + source.y + "," + source.x + ")";
+    }).style("opacity", 1e-6).remove();
+
+    // Update the links…
+    var link = vis.selectAll("path.link").data(tree.links(nodes).filter(function(d) { return d.target.step <= data.this_step; }), function(d) {
+        return d.target.id;
+    });
+
+    // Enter any new links at the parent's previous position.
+    link.enter().insert("svg:path", "g").attr("class", "link").attr("d", function(d) {
+        var o = {
+            x: source.x0,
+            y: source.y0
+        };
+        return diagonal({
+            source: o,
+            target: o
+        });
+    }).transition().duration(duration).attr("d", diagonal);
+
+    // Transition links to their new position.
+    link.transition().duration(duration).attr("d", diagonal);
+
+    // Transition exiting nodes to the parent's new position.
+    link.exit().transition().duration(duration).attr("d", function(d) {
+        var o = {
+            x: source.x,
+            y: source.y
+        };
+        return diagonal({
+            source: o,
+            target: o
+        });
+    }).remove();
+
+    // Stash the old positions for transition.
+    nodes.forEach(function(d) {
+        d.x0 = d.x;
+        d.y0 = d.y;
+    });
+}
+
+// Toggle children on click.
+function click(d) {
+    if (d.children) {
+        d._children = d.children;
+        d.children = null;
+    } else {
+        d.children = d._children;
+        d._children = null;
+    }
+    update(d,data.this_step);
+}
+
+function color(d) {
+    return d._children ? "#3182bd" : d.children ? "#c6dbef" : "#fd8d3c";
+};
+
+$('#slider1').change(function() {   
+    //console.log(root);
+    //delete root;
+    //subdata = $.extend({}, data);
+    sVal = parseInt($(this).val());
+    data.this_step = sVal;
+    var ff ={};
+  //  var subdata = deepCopy(data,ff);
+    //var subdata= data.filter(function(d) { return d.step < data.this_step; });
+    //root=filterSteps(data,sVal);
+    update(root=data,sVal);
+   // delete subdata;
+    //delete sVal;
+    //console.log(root);
+    //delete root;
+    });
+    </script>
+            {% endblock %}
+        </div><!-- /content -->
+    <div data-role="footer" data-position="fixed" style="text-align:center;" data-fullscreen="true" data-tap-toggle="false">
+    <form action="#" method="get">
+		<label for="slider-2" class="ui-hidden-accessible">Slider:</label>
+		<input type="range" name="slider-2" id="slider-2" value="5" min="0" max="5" data-highlight="true" data-mini="true" />
+	</form>
+    </div>
+    </div><!-- /page -->
+<div data-role="dialog" id="lookup">
+    <div data-role="header" data-theme="d">
+		<h1>Text.</h1>
+    </div>
+    <div data-role="content" data-theme="c">
+     <ul id="dynalist" data-role="listview" data-theme="d" data-divider-theme="d">
+	  <li>
+      <div id="collapsible_' + $.rc + '" data-mini="true" data-theme="c" data-content-theme="c" ><div id="control_div_' + $.rc + '"style="margin-left: 0px;" ><div id ="control_' + $.rc + '" data-role="controlgroup" data-type="horizontal" data-mini="true"><a href="#" id="reason_button_' + $.rc + '" data-role="button" data-icon="plus" data-iconpos="notext"></a><a href="#" id="object_button_' + $.rc + '" data-role="button" data-icon="minus" data-iconpos="notext"></a><a href="#add_ari" id="ari_button_' + $.rc + '" data-role="button" data-icon="alert" data-rel="dialog" data-transition="flip" data-iconpos="notext"></a><a href="#add_page" id="add_button_' + $.rc + '" data-role="button" data-icon="gear" data-rel="dialog" data-transition="flip" data-iconpos="notext">extra</a><a href="#images" id="images_button_' + $.rc + '" data-role="button" data-icon="check" data-rel="dialog" data-transition="flip" data-iconpos="notext">extra</a><a href="#vote" id="vote_button_' + $.rc + '" data-role="button" data-icon="star" data-rel="dialog" data-transition="flip" data-iconpos="notext"></a></div></div><div id="content_0" name="content_0" class="edit_inline">   test content here</div><div style="margin-bottom:4px"><div  id="edit_status_' + $.rc + '" style="float:left; width:40%" class="edit_status"><div id="edit_metrics_' + $.rc + '" class="edit_metrics">T4|W6|H7|J4|F5</div></div><div id="edit_icons_' + $.rc + '" style="width:40%; float:right" class="edit_icons" ><img id="ari_icon_' + $.rc + '" src="img/ari.png" style="float:right; margin-right: 5px; height: 16px; width: 16px;"/><img id="rabbit_icon_' + $.rc + '"  src="img/rabbit.png" style="float:right; margin-right: 5px; height: 16px; width: 16px;"/><img id="holdhands_icon_' + $.rc + '"  src="img/holdhands.png" style="float:right; margin-right: 5px; height: 16px; width: 16px;"/><img id="clock_icon_' + $.rc + '"  src="img/clock.png" style="float:right; margin-right: 5px; height: 16px; width: 16px;"/></div></div><div style="min-height:4px"></div></div>
+      </li>
+    </ul>
+
+       </div>
+</div>
+    
+  </body>
+</html>

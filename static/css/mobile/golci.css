@@ -1,0 +1,27 @@
+
+ul.hidden_elements{
+    display: none;
+}
+
+.ui-grid-a .ui-block-a.main {width: 75% }
+.ui-grid-a .ui-block-a .side{ width: 15%;}
+
+
+div.slider { height: 1%; overflow:hidden; padding: 0 0 10px 0; }
+div.viewport1 { width: 240px; height: 125px; float: left; overflow: hidden; position: relative; }
+ul.overview1 { list-style: none; position: absolute; width: 240px; left: 0 top: 0; }
+ul.overview1 li{ float: left; margin: 0 20px 0 0; padding: 1px; height: 121px; border: 1px solid #dcdcdc; width: 236px;}
+
+#dvWrapper {
+padding:-10px;
+margin:0px;
+overflow:visible;
+}
+
+#wrapper {
+padding:-10px;
+margin:0px;
+overflow:visible;
+}
+
+.ui-icon-rabbit {background-image: url(images/rabbit.png);}

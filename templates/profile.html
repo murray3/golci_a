@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+    {% block header %}
+    <div data-role="header" id="header" data-position="fixed">
+        <h1>golci</h1><a href="/logout" data-ajax="false">Logout</a><a style="color:red;"href="/menu" data-icon="gear" class="ui-btn-right">Menu</a>
+    </div><!-- /header -->
+    {% endblock %}
+
+{% block content %}
+  <div class="media">
+    <div class="img avatar">
+      <img src="{{ user.avatar_url }}">
+    </div>
+    <div class="body">
+      <h1 style="margin-top: 0; padding-top: 0">{{ user.name }}</h1>
+      <p><a href="{{ user.link }}" target="_blank" rel="nofollow">{{ user.link }}</a></p>
+    </div>
+  </div>
+
+
+  <h2>auth session</h2>
+  <pre>{{ session }}</pre>
+  
+
+{% endblock %}

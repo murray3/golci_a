@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.27.2"></script>
+    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.layout.js?1.27.2"></script>
+    <style type="text/css">
+
+.node rect {
+  cursor: pointer;
+  fill: #fff;
+  fill-opacity: .5;
+  stroke: #3182bd;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  font: 10px sans-serif;
+  pointer-events: none;
+}
+
+path.link {
+  fill: none;
+  stroke: #9ecae1;
+  stroke-width: 1.5px;
+}
+
+    </style>
+</head>
+<body>
+<div data-role="header" data-position="fixed">
+    <h1>Fixed Header!</h1>
+</div>
+    <div id="chart"></div>
+
+<script type="text/javascript">
+var data = {
+    "name": "My Root",
+    "step": 1,
+    "this_step": 5,
+    "total": 5,
+    "id": "0.0",   
+    "children": [
+        {
+        "name": "first level child 1",
+        "id": "0.1",
+        "step":2,
+        "children": [
+            {
+            "name": "second level child 1",                      "id": "0.1.1",
+            "step": 3,
+            "children": [
+                {
+                "name": "third level child 1",
+                "id": "0.1.1.1",
+                "step": 4,
+                "children": []},
+            {
+                "name": "third level child 2",
+                "id": "0.1.1.2",
+                "step": 5,
+                "children": []}
+
+            ]},
+                    ]}
+    ]
+};
+
+var w = 960,
+    h = 800,
+    i = 0,
+    barHeight = 20,
+    barWidth = w * .8,
+    duration = 400,
+    root;
+
+var tree = d3.layout.tree().size([h, 100]);
+
+var diagonal = d3.svg.diagonal().projection(function(d) {
+    return [d.y, d.x];
+});
+
+var vis = d3.select("#chart").append("svg:svg").attr("width", w).attr("height", h).append("svg:g").attr("transform", "translate(20,30)");
+
+d3.json("flare.json", function(json) {
+  json.x0 = 0;
+  json.y0 = 0;
+  update(root = json,parseInt(data.total));
+});
+//update(root = data,parseInt(data.total));
+
+function update(source,_step) {
+    //root.children.filter(function(d) { return d.step <= _step; });
+    // Compute the flattened node list. TODO use d3.layout.hierarchy.
+    var nodes = tree.nodes(root).filter(function(d) { return d.step <= _step; });
+
+    // Compute the "layout".
+    nodes.forEach(function(n, i) {
+        n.x = i * barHeight;
+    });
+
+    // Update the nodes…
+    var node = vis.selectAll("g.node").data(nodes, function(d) {
+           return d.id || (d.id = ++i);
+    });
+
+    var nodeEnter = node.enter().append("svg:g").attr("class", "node").attr("transform", function(d) {
+        return "translate(" + source.y0 + "," + source.x0 + ")";
+    }).style("opacity", 1e-6);
+
+    // Enter any new nodes at the parent's previous position.
+    nodeEnter.append("svg:rect").attr("y", -barHeight / 2).attr("height",  barHeight).attr("width", barHeight).attr("fill","white").on("click", function(d) {
+        if (d.selected) {
+            d.selected = false;
+            d3.select(this).style("fill", "white");
+        } else {
+            d.selected = true;
+            d3.select(this).style("fill", "black");
+            insert_child(source,source,d.id,"test","test",1,0);
+}
+      //  printSelectedNodes();
+        
+        update(source,data.this_step);
+    });
+    nodeEnter.append("svg:rect").attr("y", -barHeight / 2).attr("x", barHeight+1).attr("height", barHeight).attr("width", barWidth).style("fill", color).on("click", click);
+    nodeEnter.append("svg:text").attr("dy", 3.5).attr("dx", barHeight + 5).text(function(d) {
+        return d.name;
+    });
+
+    // Add checkbox
+    
+
+    // Transition nodes to their new position.
+    nodeEnter.transition().duration(duration).attr("transform", function(d) {
+        return "translate(" + d.y + "," + d.x + ")";
+    }).style("opacity", 1);
+
+    node.transition().duration(duration).attr("transform", function(d) {
+        return "translate(" + d.y + "," + d.x + ")";
+    }).style("opacity", 1).select("rect").style("fill", color);
+
+    // Transition exiting nodes to the parent's new position.
+    node.exit().transition().duration(duration).attr("transform", function(d) {
+        return "translate(" + source.y + "," + source.x + ")";
+    }).style("opacity", 1e-6).remove();
+
+    // Update the links…
+    var link = vis.selectAll("path.link").data(tree.links(nodes).filter(function(d) { return d.target.step <= data.this_step; }), function(d) {
+        return d.target.id;
+    });
+
+    // Enter any new links at the parent's previous position.
+    link.enter().insert("svg:path", "g").attr("class", "link").attr("d", function(d) {
+        var o = {
+            x: source.x0,
+            y: source.y0
+        };
+        return diagonal({
+            source: o,
+            target: o
+        });
+    }).transition().duration(duration).attr("d", diagonal);
+
+    // Transition links to their new position.
+    link.transition().duration(duration).attr("d", diagonal);
+
+    // Transition exiting nodes to the parent's new position.
+    link.exit().transition().duration(duration).attr("d", function(d) {
+        var o = {
+            x: source.x,
+            y: source.y
+        };
+        return diagonal({
+            source: o,
+            target: o
+        });
+    }).remove();
+
+    // Stash the old positions for transition.
+    nodes.forEach(function(d) {
+        d.x0 = d.x;
+        d.y0 = d.y;
+    });
+}
+
+// Print to the console a list of selected nodes.
+function printSelectedNodes() {
+    var nodes = tree.nodes(root);
+    var selected = [];
+    nodes.forEach(function(n, i) {
+        if (n.selected) {
+          selected.push(n.name);
+        }
+    });
+    console.log(selected);
+}
+
+function insert_child(source,object,ex_id,new_txt,new_id,tog,new_step) {
+   var o = object;
+   if (tog == 1) {
+     var new_step = data.total + 1;
+     };
+   if(o.id == ex_id) {
+       var len = o.children.length +1;
+       var new_id = ex_id.substring(0,ex_id.length -2)+"."+len;
+       o.children.push({
+                "name": new_id+" - "+new_step,
+                "id": new_id,
+                "step": o.total,
+                "children": []
+            });
+         data.this_step = data.total +1;
+         data.total = data.total +1;
+         //$('#footer').page();
+         //$('#slider1').parent().page();
+          $('#slider1').slider("option", "max", data.this_step);
+          $('#slider1').val(data.this_step).slider('refresh');
+              //  $('#slider1').slider({max: data.total, value: data.total});
+         //alert(data.this_step);
+       } else {
+   for(var a = 0; a < o.children.length; a++) {
+      if(o.children[a].id == ex_id) {
+           var base = ex_id.substring(0,ex_id.length)
+           var base_num = ex_id.substring(ex_id.length -3,ex_id.length-2)
+           base_num = (parseInt(base_num)+1).toString()
+           var new_base = base;
+           var ex_id_txt = ex_id.substring(0,ex_id.length -1);
+           var new_idd = new_base+"."+(o.children[a].children.length+1);
+           o.children[a].children.push({
+                "name": new_idd+" - "+new_step,
+                "id": new_idd,
+                "step": o.total,
+                "children": []
+            });
+          data.this_step = data.total +1;
+          data.total = data.total +1;
+          //$('#footer').page();
+          //$('#slider1').parent().page();
+          $('#slider1').slider("option", "max", data.this_step);
+          $('#slider1').val(data.this_step).slider('refresh');
+          //$('#slider1').slider("value", $slider1.slider("value"));
+        //  $('#slider1').slider({max: data.total,value: data.total});
+         // alert(data.this_step);
+        }
+        else {
+           insert_child(source,o.children[a],ex_id,new_txt,new_id,0,new_step);
+        }
+       }
+  };
+};
+
+// Toggle children on click.
+function click(d) {
+    if (d.children) {
+        d._children = d.children;
+        d.children = null;
+    } else {
+        d.children = d._children;
+        d._children = null;
+    }
+    update(d,data.this_step);
+}
+
+function color(d) {
+    return d._children ? "#3182bd" : d.children ? "#c6dbef" : "#fd8d3c";
+};
+
+function filterSteps(arr, value) {
+    var item;
+    for (var i = 0; i < arr.children.length; i++) {
+        item = arr.children[i];
+        if (item["step"] && item["step"] <= value) {
+           filterSteps(arr.children[i],value);
+        } else {
+        arr.children.splice(i,1);
+        }
+      return(arr);
+    }
+};
+
+function deepCopy(p,c) {
+var c = c||{};
+for (var i in p) {
+  if (typeof p[i] === 'object') {
+    c[i] = (p[i].constructor === Array)?[]:{};
+    deepCopy(p[i],c[i]);
+  } else c[i] = p[i];}
+return c;
+}
+
+$('#slider1').change(function() {   
+    //console.log(root);
+    //delete root;
+    //subdata = $.extend({}, data);
+    sVal = parseInt($(this).val());
+    data.this_step = sVal;
+    var ff ={};
+  //  var subdata = deepCopy(data,ff);
+    //var subdata= data.filter(function(d) { return d.step < data.this_step; });
+    //root=filterSteps(data,sVal);
+    update(root=data,sVal);
+   // delete subdata;
+    //delete sVal;
+    //console.log(root);
+    //delete root;
+    });
+
+    </script>
+
+  <div data-role="footer" data-position="fixed">
+<div data-role="fieldcontain">
+<input type="range" name="slider1" id="slider1" value="5" min="0" max="5"></div>
+</div>
+  </body>
+</html>
