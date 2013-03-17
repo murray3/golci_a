@@ -35,10 +35,10 @@
     <ul id="dynalist" data-role="listview" data-theme="d" data-divider-theme="d">
 			<li data-role="list-divider">Latest golci <span class="ui-li-count">{{count}}</span></li>
     {% for c in cons %}
-       <li><a href="/tree?con_id={{c.key().id()}}" data-ajax="false">
-       <img src="/image?entity_id={{ c.key().id()}}" style="width:100%; height:100%"/>
+       <li><a href="/contention?con_id={{c.key().id()}}" data-ajax="false">
+       <img src="/image?type=con&entity_id={{ c.key().id()}}" style="width:100%; height:100%"/>
       {% if c.author %}
-        <p><strong>{{ c.author.nickname() }} Posted on {{c.date}}:</strong></p>
+        <p><strong>{{ c.author }} Posted on {{c.date}}:</strong></p>
       {% else %}
        <p><strong>An anonymous person wrote:</strong></p>
       {% endif %}

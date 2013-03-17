@@ -257,14 +257,18 @@ class AuthHandler(BaseRequestHandler, SimpleAuthHandler):
 class ImageHandler(webapp2.RequestHandler):
     def get(self):
         #logging.info("T!!!!!!!!!!!!!!!!!!!!!!HE value of contention is %s", self.request.get("entity_id"))
-        contention_ID = self.request.get("entity_id")
-        con = Contention.get_by_id(int(contention_ID))
-        #contention = db.get(self.request.get("entity_id"))
-        #if (contention and contention.image):
-        self.response.headers['Content-Type'] = 'image/jpeg'
-        self.response.out.write(con.image)
-        #else:
-            #self.redirect('/static/ok.png')
+        type = self.request.get("type")
+        the_ID = self.request.get("entity_id")
+        if type == "con":
+            con = Contention.get_by_id(int(the_ID))
+            self.response.headers['Content-Type'] = 'image/jpeg'
+            self.response.out.write(con.image)
+        elif type == "elem":
+            elem = Elements.get_by_id(int(the_ID))
+            self.response.headers['Content-Type'] = 'image/jpeg'
+            self.response.out.write(elem.image)
+        else:
+            self.redirect('/static/ok.png')
         
 class IndexHandler(BaseRequestHandler):
     def get(self):
@@ -358,31 +362,71 @@ class Postgolci(BaseRequestHandler):
     @user_required
     def post(self):
         branch_name = self.request.get('branch_name')
-        picture_url_1 = self.request.get('picture_url_1')
+        picture_url_0 = self.request.get('picture_url_0')
+        user = self.current_user
         branch_q = db.GqlQuery("SELECT * FROM Branch WHERE branch = :1", branch_name)
         branch = branch_q.get()
         #branch = Branch(parent=branch_key('Business'))
         #branch_key = branch.Key().id()
         #b_key = db.Key.from_path('Branch', branch)
-
-        c = Contention(branch_key=branch)
-
+        tag_list1 = split(self.request.get('form_content_0'))
+        tag_list=['one','two','three']
+        c = Contention(branch_key=branch, tags=tag_list )
 
         # if users.get_current_user():
             # c.author = users.get_current_user()
             
-        c.content = self.request.get('content')
+        c.content = self.request.get('form_content_0')
         c.branch_name = branch_name
         #c.image_URL = picture_url
-        c.image = db.Blob(urlfetch.Fetch(picture_url_1).content)
+        c.image = db.Blob(urlfetch.Fetch(picture_url_0).content)
+        if self.logged_in:
+            logging.info('Checking currently logged in user')
+            logging.info(self.current_user.name)
+            sessiony = self.auth.get_user_by_session()
+            c.author = self.current_user.name
+            c.author_id = sessiony['user_id']
         c.put()
-        reason = ['r1','r2','r3','r4','r5','r6','r7','r8','r9','r10']
-        objection = ['o1','o2','o3','o4','o5','o6','o7','o8','o9','o10']
-        r1 = Elements(contention_key=c)
-        r1.text = self.request.get('reason_1')
-        r1.put()
+        reason = ['1','2']
+        objection = ['1','2','3','4','5','6','7','8','9','10']
+        reasons = int(self.request.get('_reasons'))
+        objections = int(self.request.get('_objections'))
+        if reasons > 0:
+            for reas in range(1, reasons+1):
+                pic = 'picture_url_' + str(reas)
+                pict = self.request.get(pic)
+                r = Elements(contention_key=c)
+                r.element_type='reason'
+                r.image = db.Blob(urlfetch.Fetch(pict).content)
+                rcon = 'form_reason_'+str(reas)
+                r.content = self.request.get(rcon)
+                #r.author = user.name
+                r.branch_name = branch_name
+                if self.logged_in:
+                    sessiony = self.auth.get_user_by_session()
+                    r.author = self.current_user.name
+                    r.author_id = sessiony['user_id']
+                r.put()
+
+        if objections > 0:
+            for objs in range(1,objections+1):
+                picobjs = objs + 5
+                pic = 'picture_url_' + str(picobjs)
+                pict = self.request.get(pic)
+                o = Elements(contention_key=c)
+                o.element_type='objection'
+                o.image = db.Blob(urlfetch.Fetch(pict).content)
+                ocon = 'form_objection_'+str(objs)
+                o.content = self.request.get(ocon)
+                #o.author = user.name
+                o.branch_name = branch_name
+                if self.logged_in:
+                    sessiony = self.auth.get_user_by_session()
+                    o.author = self.current_user.name
+                    o.author_id = sessiony['user_id']
+                o.put()
         
-        self.redirect('/contention?contention=%s' % c.key().id())
+        self.redirect('/contention?con_id=%s' % c.key().id())
   
     @user_required    
     def get(self):
@@ -396,7 +440,7 @@ class Postgolci(BaseRequestHandler):
         #self.redirect('/index')
         data = {
             "content" : c.content,
-            "author" : c.author.nickname(),
+            "author" : c.author.name(),
             }
         self.response.out.write(json.dumps(data)) 
         
@@ -441,17 +485,29 @@ class BranchHandler(BaseRequestHandler):
 class ContentHandler(BaseRequestHandler):
     def get(self):
         #branch = self.request.get('branch')
-        contention_ID = self.request.get('contention')
+        conn_id = self.request.get('con_id')
         #con_key = db.Key.from_path('Contention',int(contention_ID))
-        con = Contention.get_by_id(int(contention_ID))
+        con = Contention.get_by_id(int(conn_id))
         #con_q = db.GqlQuery("SELECT * from Contention where __key__ = key; key=KEY('Contention', contention_ID))
         #con = con_q.get()
-        elems=[]
+        objections=[]
+        reasons=[]
+        rcount=0
+        ocount=0
         count=0
         #contention_query =  Contention.all().order('date')
         if con:
             elems = con.elements.fetch(50)
-            count = int(elems.count(20))+1
+            if elems:
+                for r in elems:
+                    if r.element_type=='reason':
+                        reasons.append(r)
+                        rcount = rcount+1
+                for o in elems:
+                    if o.element_type=='objection':
+                        objections.append(o)
+                        ocount = ocount+1
+            ccount = int(len(elems))
         # if users.get_current_user():
             # url = users.create_logout_url(self.request.uri)
             # url_linktext = 'Logout'
@@ -462,11 +518,13 @@ class ContentHandler(BaseRequestHandler):
         dictionary={'C1': {'C2': {'C3': {}}}}
         params = {
                 'con':con,
-                'elems':elems,
-                'count': count,
-                'dictionary':dictionary
+                'reasons':reasons,
+                'objections':objections,
+                'ccount': ccount,
+                'rcount': rcount,
+                'ocount': ocount
                 }
-        return self.render('contention.html', params)
+        return self.render('conn2.html', params)
         
 class TreeJsonHandler(BaseRequestHandler):
     def treeh(self,parents,childs):

@@ -315,7 +315,7 @@ class textmatch(BaseRequestHandler):
         from collections import defaultdict
         tb = defaultdict(list)
         tb['tb1']=sents4
-        tb['tb2']=sents5
+        tb['tb2']=sents4
         tb['tb3']=sents5
         self.response.out.write(json.dumps(tb))
 

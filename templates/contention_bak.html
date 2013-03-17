@@ -1,0 +1,56 @@
+{% extends "alt_base.html" %}
+{% block header %}
+    <h1>{{branch_name}}</h1>
+{% endblock %}
+{% block content %}
+    <ul data-role="listview" data-theme="d" data-divider-theme="d"  data-split-icon="gear" data-split-theme="d"> 
+	   <li data-role="list-divider">Contention: <span class="ui-li-count">{{count}}</span></li>
+       <li><a href="contention.html">
+       <img src="/image?type=con&entity_id={{ con.key().id()}}" style="width:100%; height:100%"/>
+      {% if con.author %}
+        <p><strong>{{ con.author }} Posted on {{con.date}}:</strong></p>
+      {% else %}
+       <p><strong>An anonymous person wrote:</strong></p>
+      {% endif %}     
+      <p>{{ con.content }}</p>
+      <p class="ui-li-aside">tagged as {{con.branch_name}}</p>
+      </a><a href="/argu?edit=1&c_id={{con.key().id()}}"  data-transition="slideup">Add Element
+			</a></li>
+    
+    {% if reasons %}
+        <li data-role="list-divider">Reasons: <span class="ui-li-count">{{count}}</span></li>
+    {% for r in reasons %}
+       <li><a href="contention.html">
+       <img src="/image?type=elem&entity_id={{ r.key().id()}}" style="width:100%; height:100%"/>
+      {% if r.author %}
+        <p><strong>{{ r.author }} Posted on {{r.date}}:</strong></p>
+      {% else %}
+       <p><strong>An anonymous person wrote:</strong></p>
+      {% endif %}
+      
+      <p>{{ r.content }}</p>
+      <p class="ui-li-aside">tagged as {{r.branch_name}}</p>
+      </a></li>
+    {% endfor %}
+    {% endif %}
+    
+    {% if objections %}
+        <li data-role="list-divider">Objections: <span class="ui-li-count">{{count}}</span></li>
+    {% for o in objections %}
+       <li><a href="contention.html">
+       <img src="/image?type=elem&entity_id={{ o.key().id()}}" style="width:100%; height:100%"/>
+      {% if o.author %}
+        <p><strong>{{ o.author }} Posted on {{o.date}}:</strong></p>
+      {% else %}
+       <p><strong>An anonymous person wrote:</strong></p>
+      {% endif %}
+      
+      <p>{{ o.content }}</p>
+      <p class="ui-li-aside">tagged as {{o.branch_name}}</p>
+      </a></li>
+    {% endfor %}
+    {% endif %}
+    </ul>
+{% endblock %}
+{% block mediaJS %}
+{% endblock %}

@@ -25,7 +25,7 @@ div.edit_inline {
     font: lighter 13pt/17pt Helvetica,Arial,sans-serif; 
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) inset;
     display: inline-block;
-    width: 95%;
+    width: 97%;
     -moz-transition: height 200ms linear 0s;
     text-shadow: 0;
     font-size: 16px;
@@ -199,6 +199,19 @@ $.fn.editable = function(url, options) {
 					if (options.editClass) $(me).removeClass(options.editClass);
 					me.editing = false;
                     if ($(i).val() != exTXT) {
+					    //if (myid.indexOf("reason") !== -1) {
+					    //   var rval= parseInt($("#_reasons").val());
+						//   rval = rval+1;
+						//   $("#_reasons").val(rval);
+						//} else if (myid.indexOf("objection") !== -1) {
+						//   var oval= parseInt($("#_objections").val());
+						//   oval = oval+1;
+						//   $("#_objections").val(oval);
+						//}
+					    var contxt = $(i).val();
+		                $("#form_"+myid).val(contxt);
+						//alert(contxt);
+						//alert($("#form_"+myid).val());
                         // for (var ii=0;ii<=rc;ii++)
                         // { 
                         // valu[ii] = valu[ii].replace(/ /g,"_"); 
@@ -252,21 +265,23 @@ $.fn.editable = function(url, options) {
     // textbag_2 : ['tb2','tb2'],
     // textbag_3 : ['tb3','tb3'],
 // }; 
-
 $(document).ready(function() {
 $.ac=1;
 $.rc=2;
 $.rcli='#reason_li_2';
 $.oc=0;
-$.ocli='#reason_li_2';
+//$.ocli='#reason_li_2';
 $.ar="0";
 $.tgl=0;
+$.node=c0;
 window.iargu_globals = { 
     textbag_1 : ['tb1','tb1'], 
     textbag_2 : ['tb2','tb2'],
     textbag_3 : ['tb3','tb3'],
 }; 
 $(".edit_inline").editable();
+$("#_reasons").val(2);
+$("#_objections").val(0);
 });
 
 </script>
@@ -305,13 +320,19 @@ $("#add_reason").live('click', function() {
     if ($.rc >= 5) { 
         alert("max 5 reasons submitted")
     } else {
-        $.rcli='#reason_li_' + $.rc;
+	    var rval= parseInt($("#_reasons").val());
+		rval = rval+1;
+		$("#_reasons").val(rval);	    
         $.rc = $.rc+1; // increment the reason counter (rc) for the new reason elements - note count starts at 2 !! //
-        //var rc_ui = $.rc+1; //this gets existing number of reasons and adds one for the ui text 
-        var r1li = '<li class="ui-body ui-body-c" id="reason_li_' + $.rc + '"><label for="branch_name">Reason ' + $.rc + ':</label><div id="reason_' + $.rc + '"name="reason_' + $.rc + '" class="edit_inline"></div></li>'
-        $(r1li).insertAfter($.rcli);    
-        $(".edit_inline").editable();
-        $(r1li).("refresh"); 
+        var rc_ui = $.rc+1; //this gets existing number of reasons and adds one for the ui text 
+        //var r1li = '<li class="ui-body ui-body-c" id="reason_li_' + $.rc + '"><label for="branch_name">Reason ' + $.rc + ':</label><div id="reason_' + $.rc + '"name="reason_' + $.rc + '" class="edit_inline"></div><div><a id="add_btn_r' + $.rc + ' "href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to R' + $.rc + '</a></div></li>'
+        //$(r1li).insertAfter($.rcli);    
+        //$(".edit_inline").editable();
+		//$("#add_btn_r3").button("refresh");
+        //$(r1li).li("refresh");
+		var rcli='#reason_li_' + $.rc;
+		$(rcli).show();
+		$(rcli).li("refresh");
         $("#form_list").listview("refresh");
     }
     });
@@ -320,47 +341,67 @@ $("#add_objection").live('click', function() {
     if ($.oc >= 5) { 
         alert("max 5 objections submitted")
     } else {
-        if ($.rc > 2) {
-            $.ocli='#reason_li_' + $.rc;
-        }
-        if ($.oc > 0) { 
-            $.ocli='#objection_li_' + $.oc;
-        } 
-        //$.ocli='#objection_li_' + $.oc;
+        //if ($.rc > 2) {
+        //    $.ocli='#reason_li_' + $.rc;
+        //}
+        //if ($.oc > 0) { 
+        //    $.ocli='#objection_li_' + $.oc;
+        //} 
+		var oval= parseInt($("#_objections").val());
+		oval = oval+1;
+		$("#_objections").val(oval);
         $.oc = $.oc+1; // increment the reason counter (rc) for the new reason elements - note count starts at 2 !! //
         //var rc_ui = $.rc+1; //this gets existing number of reasons and adds one for the ui text 
-        var o1li = '<li class="ui-body ui-body-c" id="objection_li_' + $.oc + '"><label for="branch_name">Objection ' + $.oc + ':</label><div id="objection_' + $.oc + '"name="objection_' + $.oc + '" class="edit_inline"></div></li>'
-        $(o1li).insertAfter($.ocli);    
-        $(".edit_inline").editable();
-        $(o1li).("refresh"); 
+        //var o1li = '<li class="ui-body ui-body-c" id="objection_li_' + $.oc + '"><label for="branch_name">Objection ' + $.oc + ':</label><div id="objection_' + $.oc + '"name="objection_' + $.oc + '" class="edit_inline"></div><div><a id="add_btn_o' + $.node + ' "href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to O' + $.node + '</a></div></li>'
+        //$(o1li).insertAfter($.ocli);    
+        //$(".edit_inline").editable();
+		var ocli = '#objection_li_' + $.oc;
+		$(ocli).show();		
+		$(ocli).li("refresh");
+        //$('a[id*="add_btn"]').button("refresh");
         $("#form_list").listview("refresh");
     }
     });
 
 $("#pic_button").live('click', function() {
-    var pic1 = $("#pic_input1").val();
-    $("#picture_url_1").val(pic1);
-    var pic2 = $("#pic_input2").val();
-    $("#picture_url_2").val(pic2);
-    var pic3 = $("#pic_input3").val();
-    $("#picture_url_3").val(pic3);
-    var pic4 = $("#pic_input4").val();
-    $("#picture_url_4").val(pic4);
-    var pic5 = $("#pic_input5").val();
-    $("#picture_url_5").val(pic5);
-    var pic6 = $("#pic_input6").val();
-    $("#picture_url_6").val(pic6);
-    var pic7 = $("#pic_input7").val();
-    $("#picture_url_7").val(pic7);
-    var pic8 = $("#pic_input8").val();
-    $("#picture_url_8").val(pic8);
-    var pic9 = $("#pic_input9").val();
-    $("#picture_url_9").val(pic9);
-    var pic10 = $("#pic_input10").val();
-    $("#picture_url_10").val(pic10);
+    var pic = $("#pic_input").val();
+    if ($("#image_name").val() == "image0") {
+		$("#picture_url_0").val(pic);
+	} else if ($("#image_name").val() == "image1") {
+		$("#picture_url_1").val(pic);
+	} else if ($("#image_name").val() == "image2") {
+		$("#picture_url_2").val(pic);
+	} else if ($("#image_name").val() == "image3") {
+		$("#picture_url_3").val(pic);
+	} else if ($("#image_name").val() == "image4") {
+		$("#picture_url_4").val(pic);
+	} else if ($("#image_name").val() == "image5") {
+		$("#picture_url_5").val(pic);
+	} else if ($("#image_name").val() == "image6") {
+		$("#picture_url_6").val(pic);
+	} else if ($("#image_name").val() == "image7") {
+		$("#picture_url_7").val(pic);
+	} else if ($("#image_name").val() == "image8") {
+		$("#picture_url_8").val(pic);
+	} else if ($("#image_name").val() == "image9") {
+		$("#picture_url_9").val(pic);
+	} else if ($("#image_name").val() == "image10") {
+		$("#picture_url_10").val(pic);
+	}else if ($("#image_name").val() == "imageall") {
+	    for (var ii=0;ii<=10;ii++) {
+		    $("#picture_url_"+ii.toString() ).val(pic);
+		}
+	}
+	//alert(pic);
     });
-    
-$("#checkrules").live('click', function() {
+
+$('a[id*="add_btn"]').live("click tap", function() {
+    $.node = $(this).attr('id').substring(8);
+	$.mobile.changePage('#add_page', {transition: 'pop', role: 'dialog'});   
+    });
+	
+$("#checkrules").live("click tap", function() {
+    //alert("test");
     var rc = $.rc;
     var varid ="";
     //$("#contention").highlight($.iargu_namespace.textbag_1);
@@ -370,7 +411,7 @@ $("#checkrules").live('click', function() {
        var vv= ii+1
        var tbagvar = "textbag_" + vv;
        var tbag = window.iargu_globals[tbagvar];
-       $('#reason_' + ii).highlight(tbag); 
+       $('#reason_' + vv).highlight(tbag); 
        //for (var iii=0;iii<=rc;iii++)
        //    tbagg = 'textbag_' + iii;
        //    $(varid).highlight($.iargu_namespace[iii], {className: 'highlight2'});
@@ -406,6 +447,9 @@ $("#checkrules").live('click', function() {
             <option value="{{b.branch}}">{{b.branch}}</option>
             {% endfor %}   
         </select>
+        <input type="hidden" id="_reasons" name="_reasons" value="">
+        <input type="hidden" id="_objections" name="_objections" value="">
+        <input type="hidden" id="picture_url_0" name="picture_url_0" value="">
         <input type="hidden" id="picture_url_1" name="picture_url_1" value="">
         <input type="hidden" id="picture_url_2" name="picture_url_2" value="">
         <input type="hidden" id="picture_url_3" name="picture_url_3" value="">
@@ -416,31 +460,93 @@ $("#checkrules").live('click', function() {
         <input type="hidden" id="picture_url_8" name="picture_url_8" value="">
         <input type="hidden" id="picture_url_9" name="picture_url_9" value="">
         <input type="hidden" id="picture_url_10" name="picture_url_10" value="">
+        <input type="hidden" id="form_content_0" name="form_content_0" value="">
+        <input type="hidden" id="form_reason_1" name="form_reason_1" value="">
+        <input type="hidden" id="form_reason_2" name="form_reason_2" value="">
+        <input type="hidden" id="form_reason_3" name="form_reason_3" value="">
+        <input type="hidden" id="form_reason_4" name="form_reason_4" value="">
+        <input type="hidden" id="form_reason_5" name="form_reason_5" value="">
+        <input type="hidden" id="form_reason_6" name="form_reason_6" value="">
+        <input type="hidden" id="form_reason_7" name="form_reason_7" value="">
+        <input type="hidden" id="form_reason_8" name="form_reason_8" value="">
+        <input type="hidden" id="form_reason_9" name="form_reason_9" value="">
+        <input type="hidden" id="form_reason_10" name="form_reason_10" value="">
+        <input type="hidden" id="form_objection_1" name="form_objection_1" value="">
+        <input type="hidden" id="form_objection_2" name="form_objection_2" value="">
+        <input type="hidden" id="form_objection_3" name="form_objection_3" value="">
+        <input type="hidden" id="form_objection_4" name="form_objection_4" value="">
+        <input type="hidden" id="form_objection_5" name="form_objection_5" value="">
+        <input type="hidden" id="form_objection_6" name="form_objection_6" value="">
+        <input type="hidden" id="form_objection_7" name="form_objection_7" value="">
+        <input type="hidden" id="form_objection_8" name="form_objection_8" value="">
+        <input type="hidden" id="form_objection_9" name="form_objection_9" value="">
+        <input type="hidden" id="form_objection_10" name="form_objection_10" value="">
+		<a id='lnkDialog' href="#add_page" data-rel="dialog" data-transition="flip" style='display:none;'></a>
         </li>
         <li class="ui-body ui-body-c" id="content_li">
-            <label for="branch_name">Contention:</label>
-            <div id="content_0" name="content_0" class="edit_inline"></div>
+          <label for="branch_name">Contention:</label>
+		  <div id="content_0" name="content_0" class="edit_inline"></div>
+          <div><a id="add_btn_c0" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc</a></div>	
 		</li>
         <li data-role="ui-body ui-body-c" id="reason_li_1">
             <label for="branch_name">Reason 1:</label>
             <div id="reason_1" name="reason_1" class="edit_inline"></div>
+          <div><a id="add_btn_r1" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to R1</a></div>	
 		</li>
         <li data-role="ui-body ui-body-c" id="reason_li_2">
             <label for="branch_name">Reason 2:</label>
             <div id="reason_2" name="reason_2" class="edit_inline"></div>
-		</li>        
+          <div><a id="add_btn_r2" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to R2</a></div>	
+		</li>   
+        <li data-role="ui-body ui-body-c" id="reason_li_3" style="display:none">
+            <label for="branch_name">Reason 3:</label>
+            <div id="reason_3" name="reason_3" class="edit_inline"></div>
+          <div><a id="add_btn_r3" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to R3</a></div>	
+		</li>  	  
+        <li data-role="ui-body ui-body-c" id="reason_li_4" style="display:none">
+            <label for="branch_name">Reason 4:</label>
+            <div id="reason_4" name="reason_4" class="edit_inline"></div>
+          <div><a id="add_btn_r4" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to R4</a></div>	
+		</li>  
+        <li data-role="ui-body ui-body-c" id="reason_li_5" style="display:none">
+            <label for="branch_name">Reason 5:</label>
+            <div id="reason_5" name="reason_5" class="edit_inline"></div>
+          <div><a id="add_btn_r5" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to R5</a></div>	
+		</li>	
+        <li data-role="ui-body ui-body-c" id="objection_li_1" style="display:none">
+            <label for="branch_name">Objection 1:</label>
+            <div id="objection_1" name="objection_1" class="edit_inline"></div>
+          <div><a id="add_btn_o1" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to O1</a></div>	
+		</li>
+        <li data-role="ui-body ui-body-c" id="objection_li_2" style="display:none">
+            <label for="branch_name">Objection 2:</label>
+            <div id="objection_2" name="objection_2" class="edit_inline"></div>
+          <div><a id="add_btn_o2" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to O2</a></div>	
+		</li>   
+        <li data-role="ui-body ui-body-c" id="objection_li_3" style="display:none">
+            <label for="branch_name">Objection 3:</label>
+            <div id="objection_3" name="objection_3" class="edit_inline"></div>
+          <div><a id="add_btn_o3" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to O3</a></div>	
+		</li>  	  
+        <li data-role="ui-body ui-body-c" id="objection_li_4" style="display:none">
+            <label for="branch_name">Objection 4:</label>
+            <div id="objection_4" name="objection_4" class="edit_inline"></div>
+          <div><a id="add_btn_o4" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to O4</a></div>	
+		</li>  
+        <li data-role="ui-body ui-body-c" id="objection_li_5" style="display:none">
+            <label for="branch_name">Objection 5:</label>
+            <div id="objection_5" name="objection_5" class="edit_inline"></div>
+          <div><a id="add_btn_o5" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to O5</a></div>	
+		</li>	
     	<li class="ui-body ui-body-c">
-          <fieldset class="ui-grid-b">
-			<div class="ui-block-c"><a id="add_reason" href="#" data-role="button" data-icon="plus" data-theme="d">Support</a></div>
-			<div class="ui-block-c"><a id="add_objection" href="#" data-role="button" data-icon="minus" data-theme="d">Object</a></div>
-            <div class="ui-block-c"><a id="add_btn_0" href="#add_page" data-rel="dialog" data-transition="flip"  data-role="button" data-icon="plus" data-theme="d">Extra's</a></div>   
+          <fieldset class="ui-grid-a">
+			<div class="ui-block-a"><a id="add_reason" href="#" data-role="button" data-mini="true" data-icon="plus" data-theme="d">Add Reason</a></div>
+			<div class="ui-block-b"><a id="add_objection" href="#" data-role="button" data-mini="true"  data-icon="minus" data-theme="d">Add Objection</a></div>
           </fieldset>
         </li>
-		<li class="ui-body ui-body-a">
-				<fieldset class="ui-grid-a">
-						<a id="checkrules"  href="#" data-role="button">Check Validity?</a>
-			    </fieldset>
-        </li>
+		<li class="ui-body ui-body-c">
+	       <div><a id="checkrules" href="#"  data-mini="true" data-role="button" data-icon="plus" data-theme="d">Check Validity?</a></div>
+		</li>
         <li class="ui-body ui-body-a">
             <input type="submit" value="Post golci">
         </li>
@@ -453,7 +559,7 @@ $("#checkrules").live('click', function() {
 		<h1>Add more data</h1>
     </div>
     <div data-role="content" data-theme="c">
-		<h3>Add additional data to your post</h3>
+		<h3>Add additional data</h3>
 		<a href="#add_images" data-role="button" data-rel="dialog" data-transition="pop" data-theme="d">Add Images to the post</a>       
 		<a href="#" data-role="button" data-rel="dialog" data-transition="slidedown" data-theme="d">Add Location</a>      
 		<a href="#" data-role="button" data-rel="dialog" data-transition="slidedown" data-theme="d">Add Historical Date</a> 
@@ -471,16 +577,18 @@ $("#checkrules").live('click', function() {
     <div align="center"><img src="" alt="" width="200px" height="260px" /></div>
 		<h3>Add Images to Post: </h3>
         <select name="image_name" id="image_name">
-            <option value="image1">Main Image</option>
-            <option value="image2">Image 2</option>
-            <option value="image3">Image 3</option>
-            <option value="image4">Image 4</option>
-            <option value="image5">Image 5</option>
-            <option value="image6">Image 6</option>
-            <option value="image7">Image 7</option>
-            <option value="image8">Image 8</option>
-            <option value="image9">Image 9</option>
-            <option value="image10">Image 10</option>  
+            <option value="image0">Contention Image</option>
+			<option value="imageall">Same Image on all Nodes</option>			
+			<option value="image1">Reason 1 Image</option>
+            <option value="image2">Reason 2 Image</option>
+            <option value="image3">Reason 3 Image</option>
+            <option value="image4">Reason 4 Image</option>
+            <option value="image5">Reason 5 Image</option>
+            <option value="image6">Objection 1 Image</option>
+            <option value="image7">Objection 2 Image</option>
+            <option value="image8">Objection 3 Image</option>
+            <option value="image9">Objection 4 Image</option>
+            <option value="image10">Objection 5 Image</option>  
         </select>
           <label for="pic_input" >Image URL:</label>
             <input type="text" id="pic_input" name="pic_input"></input>            
@@ -506,4 +614,9 @@ $("#checkrules").live('click', function() {
 	</div>
 </div>
     </div><!-- /page -->
+{% endblock %}
+
+{% block mediaJS2 %}
+
+
 {% endblock %}

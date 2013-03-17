@@ -54,8 +54,10 @@ class User(User):
 class Branch(db.Model):
     branch = db.StringProperty()
     description = db.StringProperty()
-    tags = db.StringProperty()
-    
+
+class Tag(db.Model):
+    tag = db.StringProperty()
+	
 class Image(db.Model):
     name = db.StringProperty()
     description = db.StringProperty()
@@ -69,7 +71,10 @@ class Golci(db.Model):
      
 class Contention(db.Model):
     # Basic info.
-    author = db.UserProperty()
+    author = db.StringProperty()
+    author_id = db.IntegerProperty()
+   # author_golci = db.ReferenceProperty(User,
+   #                            collection_name='golci')
     content = db.StringProperty(multiline=True)
     date = db.DateTimeProperty(auto_now_add=True)
     branch_key = db.ReferenceProperty(Branch,
@@ -78,7 +83,7 @@ class Contention(db.Model):
     text = db.StringProperty()
     description = db.StringProperty()
     step_count = db.IntegerProperty()
-    tags = db.StringProperty()
+    tags = db.StringListProperty()
     image_URL = db.StringProperty()
     image = db.BlobProperty()
     image_1 = db.BlobProperty()
@@ -99,14 +104,15 @@ class Elements(db.Model):
     element_keys = db.ListProperty(db.Key, validator=ancestor_list_validator)
     element_type = db.StringProperty(
         choices=('reason', 'objection', 'rebuttal', 'support'))
-    author = db.UserProperty()
+    author = db.StringProperty()
+    author_id = db.IntegerProperty()
+    branch_name = db.StringProperty()
     content = db.StringProperty(multiline=True)
     description = db.StringProperty()
-    date = db.DateProperty()
+    date = db.DateTimeProperty(auto_now_add=True)
     parent_id = db.IntegerProperty()
     image_URL = db.StringProperty()
-    image = db.StringProperty()
-    image_blob = db.BlobProperty()
+    image = db.BlobProperty()
     image_1 = db.StringProperty()
     image_blob_1 = db.BlobProperty()
     image_2 = db.StringProperty()

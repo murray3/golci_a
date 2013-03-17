@@ -1,0 +1,132 @@
+<!doctype html>
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+
+    <title>{% block title %}golci{% endblock %}</title>
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <meta name="keywords" content="" />
+
+    <!-- Mobile viewport optimized: h5bp.com/viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet"  href="/css/mobile/style.css" />
+   
+    <link rel="stylesheet"  href="/mobile/jquery.mobile-1.1.1.css" />
+    <link rel="stylesheet"  href="/mobile/golci.css" />
+    <link type="text/css" href="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.css" rel="stylesheet" />
+
+    {% block mediaCSS %}{% endblock %}
+    {% block mediaJSTOP %}{% endblock %}
+    <!-- All JavaScript at the bottom, except this Modernizr build.
+       Modernizr enables HTML5 elements & feature detects for optimal performance.
+       Create your own custom Modernizr build: www.modernizr.com/download/ -->
+    <script src="/js/libs/modernizr-2.5.2.min.js"></script>
+</head>
+<body>
+    <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you support IE 6.
+           chromium.org/developers/how-tos/chrome-frame-getting-started -->
+    <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
+
+    <div data-role="page"  data-theme="c" id="mob_page">
+    {% block header %}
+    <div data-role="header" id="header" data-position="fixed">
+        <h1>golci</h1><a href="/login">Login</a><a style="color:red;"href="/menu" data-icon="gear" class="ui-btn-right">Menu</a>
+    </div><!-- /header -->
+    {% endblock %}
+    <div> {% block swipe %}{% endblock %}    </div>
+        <div data-role="content">
+            <p class="messages {{ level }}">{{ messages }}</p>
+            {% block content %}
+			   <ul data-role="listview" data-theme="d" data-divider-theme="d"  data-split-icon="gear" data-split-theme="d"> 
+	   <li data-role="list-divider">Contention: <span class="ui-li-count">Total Nodes: {{ccount}}</span></li>
+       <li><a href="contention.html">
+       <img src="/image?type=con&entity_id={{ con.key().id()}}" style="width:100%; height:100%"/>
+      {% if con.author %}
+        <p><strong>{{ con.author }} Posted on {{con.date}}:</strong></p>
+      {% else %}
+       <p><strong>An anonymous person wrote:</strong></p>
+      {% endif %}     
+      <p>{{ con.content }}</p>
+      <p class="ui-li-aside">tagged as {{con.branch_name}}</p>
+      </a><a href="/argu?edit=1&c_id={{con.key().id()}}"  data-transition="slideup">Add Element
+			</a></li>
+    
+    {% if reasons %}
+        <li data-role="list-divider">Reasons: <span class="ui-li-count">Total Reasons: {{rcount}}</span></li>
+    {% for r in reasons %}
+       <li><a href="contention.html">
+       <img src="/image?type=elem&entity_id={{ r.key().id()}}" style="width:100%; height:100%"/>
+      {% if r.author %}
+        <p><strong>{{ r.author }} Posted on {{r.date}}:</strong></p>
+      {% else %}
+       <p><strong>An anonymous person wrote:</strong></p>
+      {% endif %}
+      
+      <p>{{ r.content }}</p>
+      <p class="ui-li-aside">tagged as {{r.branch_name}}</p>
+      </a></li>
+    {% endfor %}
+    {% endif %}
+    
+    {% if objections %}
+        <li data-role="list-divider">Objections: <span class="ui-li-count">Total Objections: {{ocount}}</span></li>
+    {% for o in objections %}
+       <li><a href="contention.html">
+       <img src="/image?type=elem&entity_id={{ o.key().id()}}" style="width:100%; height:100%"/>
+      {% if o.author %}
+        <p><strong>{{ o.author }} Posted on {{o.date}}:</strong></p>
+      {% else %}
+       <p><strong>An anonymous person wrote:</strong></p>
+      {% endif %}
+      
+      <p>{{ o.content }}</p>
+      <p class="ui-li-aside">tagged as {{o.branch_name}}</p>
+      </a></li>
+    {% endfor %}
+    {% endif %}
+    </ul>
+			{% endblock %}
+        </div><!-- /content -->
+
+    </div><!-- /page -->
+    
+            {% block content2 %}{% endblock %}
+    {% block mediaJS %}
+    <!-- JavaScript at the bottom for fast page loading -->
+
+    <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="/js/libs/jquery-1.6.4.min.js"><\/script>')</script>
+    <script src="/mobile/jquery.mobile-1.1.1.min.js"></script>
+    <script type="text/javascript" src="http://dev.jtsage.com/jquery.mousewheel.min.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.js"></script>
+    <script src="/js/libs/jquery-ui-1.8.7.custom.min.js"></script>
+    <!-- scripts concatenated and minified via build script -->
+    <script src="/js/plugins.js"></script>
+    <script src="/js/script.js"></script>
+    <script src="/js/libs/jquery.tinycarousel.js"></script>
+    <script type="text/javascript">
+    $(document).live("mobileinit", function(){
+    //$.mobile.allowCrossDomainPages = true;
+    });
+
+    </script>
+    {% endblock %}
+    {% block mediaJS2 %}{% endblock %}
+    <!-- end scripts -->
+
+    <!-- Asynchronous Google Analytics snippet. Change UA-XXXXX-X to be your site's ID.
+   mathiasbynens.be/notes/async-analytics-snippet -->
+    <script>
+        var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
+        (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+            g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+            s.parentNode.insertBefore(g,s)}(document,'script'));
+    </script>
+</body>
+</html>

@@ -47,6 +47,7 @@ routes = [
   Route('/initc', handler='knol_handlers.InitClassifier', name='initc'),
   Route('/flushc', handler='knol_handlers.Flush', name='flushc'),
   Route('/argu', handler='handlers.SimpleArgHandler', name='argu'),
+  Route('/bbb', handler='handlers.bbb', name='bbb'),
   Route('/delete/', handler='handlers.DeleteKindHandler', name='delete')
 ]
 

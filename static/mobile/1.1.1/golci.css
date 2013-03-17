@@ -2,9 +2,9 @@
 ul.hidden_elements{
     display: none;
 }
-.ui-grid-a .ui-block-f{ width: 33%;}
-.ui-grid-a .ui-block-g { width: 33%;}
-.ui-grid-a .ui-block-h{ width: 33%;}
+.ui-grid-a .ui-block-f{ width: 87%;}
+.ui-grid-a .ui-block-g { width: 10%;}
+.ui-grid-a .ui-block-h{ width: 2%;}
 
 .nav_right {
     background: url("/img/sprite.png") no-repeat scroll -67px -32px #707070;
