@@ -1,7 +1,7 @@
 
 __author__ = 'Rodrigo Augosto (@coto) - contact@protoboard.cl'
 __website__ = 'www.protoboard.cl'
-
+from google.appengine.ext import blobstore
 from webapp2_extras.appengine.auth.models import User
 from google.appengine.ext.ndb import model
 from google.appengine.ext import db
@@ -65,7 +65,7 @@ class Image(db.Model):
     
 class Golci(db.Model):
     # Basic info.
-    author = db.UserProperty()
+    #author = db.UserProperty()
     content = db.StringProperty(multiline=True)
     date = db.DateTimeProperty(auto_now_add=True)    
      
@@ -83,7 +83,8 @@ class Contention(db.Model):
     text = db.StringProperty()
     description = db.StringProperty()
     step_count = db.IntegerProperty()
-    tags = db.StringListProperty()
+    #tags = db.StringListProperty()
+    #blob = blobstore.BlobReferenceProperty(required=True)
     image_URL = db.StringProperty()
     image = db.BlobProperty()
     image_1 = db.BlobProperty()
@@ -136,7 +137,7 @@ class Ari(db.Model):
     ari_type_key = db.ReferenceProperty(Ari_types,
                                collection_name='ari_type')
                                
-    author = db.UserProperty()
+    #author = db.UserProperty()
     content = db.StringProperty(multiline=True)
     element_id  = db.StringProperty()
     type  = db.StringProperty()    
@@ -147,7 +148,7 @@ class Ari(db.Model):
 class golci_link(db.Model):
     element_key = db.ReferenceProperty(Elements,
                                collection_name='element')
-    author = db.UserProperty()
+    #author = db.UserProperty()
     content = db.StringProperty(multiline=True)
     description = db.StringProperty()    
     date = db.DateProperty()   
@@ -158,7 +159,7 @@ class golci_history(db.Model):
     contention_key = db.ReferenceProperty(Contention,
                                collection_name='history')
     parent_id = db.StringProperty()
-    author = db.UserProperty()
+    #author = db.UserProperty()
     content = db.StringProperty(multiline=True)
     description = db.StringProperty()    
     date = db.DateTimeProperty(auto_now_add=True)

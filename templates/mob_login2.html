@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<ul data-role="listview" data-theme="d">
+       <li>
+        <a href="/auth/google" rel="external" <img src="/img/google.jpg"/> <h3>Google</h3></a> 
+       </li>
+       <li>
+        <a href="/auth/facebook" rel="external" <img src="/img/providers.png" style="backround-position:0 -160px;"/> <h3>Facebook</h3></a> 
+       </li>
+       <li>
+        <a href="/auth/openid?identity_url=me.yahoo.com" rel="external" <img src="/img/google.jpg"/><h3>Yahoo! (OpenID)</h3></a> 
+       </li>
+       <li>
+        <a href="/auth/twitter" rel="external" <img src="/img/google.jpg"/> <h3>Twitter</h3></a> 
+       </li>
+       <li>
+        <a href="/auth/linkedin" rel="external" <img src="/img/google.jpg"/> <h3>LinkedIn</h3></a> 
+       </li>       
+       <li>
+        <a href="/auth/windows_live" rel="external" <img src="/img/google.jpg"/> <h3>Windows Live</h3></a> 
+       </li>
+</ul>
+{% endblock %}

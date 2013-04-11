@@ -36,8 +36,10 @@ routes = [
   Route('/logout', handler='handlers.AuthHandler:logout', name='logout'),
   Route('/index', handler='handlers.IndexHandler', name='index'),
   Route('/postgolci', handler='handlers.Postgolci', name='postgolci'),
+  Route('/upload', handler='handlers.FileUploadHandler', name='upload'),
   Route('/latestgolci', handler='handlers.latestgolciHandler', name='latestgolci'),
   Route('/image', handler='handlers.ImageHandler', name='image'),    
+  Route('/images', handler='handlers.ImageHandler2', name='images'),    
   Route('/menu', handler='handlers.HomeMenuHandler', name='menu'),
   Route('/branch', handler='handlers.BranchHandler', name='branch'),
   Route('/contention', handler='handlers.ContentHandler', name='contention'),
@@ -46,8 +48,10 @@ routes = [
   Route('/textmatch', handler='knol_handlers.textmatch', name='textmatch'),
   Route('/initc', handler='knol_handlers.InitClassifier', name='initc'),
   Route('/flushc', handler='knol_handlers.Flush', name='flushc'),
+  Route('/argu2', handler='handlers.Argu2', name='argu2'),
   Route('/argu', handler='handlers.SimpleArgHandler', name='argu'),
-  Route('/bbb', handler='handlers.bbb', name='bbb'),
+  Route('/xyz101', handler='handlers._101', name='101'),
+  Route('/t', handler='handlers.Tester', name='t'),
   Route('/delete/', handler='handlers.DeleteKindHandler', name='delete')
 ]
 

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.css" />
+    <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.1.0/jquery.mobile-1.1.0.min.js"></script>
+    <script>
+        $(function () {
+            $('#submit_my_form').click(function (e) {
+                alert(JSON.stringify(readFormData('names')));
+                alert(JSON.stringify(readFormData('dates')));
+			    alert($(this).attr('id'));
+            });
+        });
+
+        function readFormData(section) {
+            var sectionData;
+            var els = $(':input[id|='+section+']');
+
+            var sectionData = {};
+            $.each(els, function() {
+                if (this.name && !this.disabled && (this.checked
+                    || /select|textarea/i.test(this.nodeName)
+                    || /text|hidden|password|date|email/i.test(this.type))) {
+                    sectionData[this.name.substr(section.length+1)] = $(this).val();
+                    console.log(this.name + " -> " + $(this).val());
+                }
+            });
+            return sectionData;
+        }
+    </script>
+</head>
+
+<body>
+    <div data-role="page" id="menu" data-theme="a">
+        <div data-role="header" data-position="fixed">
+            <h1>Menu Page</h1>
+        </div>
+        <div data-role="content">
+            <ul data-role="controlgroup">
+                <li><a target_id="page1" href="#page1" data-role="button"
+                       style="text-align:left" data-icon="arrow-r"
+                       data-iconpos="right" class=".ui-icon-manditory">Page1</a></li>
+                <li><a target_id="page2" href="#page2" data-role="button"
+                       style="text-align:left" data-icon="arrow-r"
+                       data-iconpos="right">Page2</a></li>
+            </ul>
+            <input id="submit_my_form" type="button" name="send" value="Submit"/>
+        </div>
+        <div data-role="footer" data-position="fixed" class="ui-btn-right" style="min-height:42px;">
+            Menu page footer
+        </div>
+    </div>
+
+    <div data-role="page" id="page1" data-theme="a">
+        <div data-role="header" data-position="fixed">
+            <a href="#menu" data-icon="arrow-l" data-direction="reverse">Prev</a>
+            <h1>Page 1</h1>
+            <a href="#page2" data-icon="arrow-r">Next</a>
+        </div>
+        <div data-role="content">
+            <label for="names-initials">Name:</label>
+            <input type="text" name="names-initials" id="names-initials" value=""/>
+            <label for="names-surname">Surname:</label>
+            <input type="text" name="names-surname" id="names-surname" value=""/>
+        </div>
+        <div data-role="footer" data-position="fixed" class="ui-btn-right" style="min-height:42px;">
+        </div>
+    </div>
+
+    <div data-role="page" id="page2" data-theme="a">
+        <div data-role="header" data-position="fixed">
+            <a href="#page1" data-icon="arrow-l" data-direction="reverse">Prev</a>
+            <h1>Page 2</h1>
+        </div>
+        <div data-role="content">
+            <label for="dates-birthday">Birthday:</label>
+            <input type="date" name="dates-birthday" id="dates-birthday" value=""/>
+        </div>
+        <div data-role="footer" data-position="fixed" class="ui-btn-right" style="min-height:42px;">
+            <a href="#menu" data-icon="arrow-l" data-direction="reverse" data-iconpos="left"
+               style="margin-left: 10px; margin-top: 5px">Back to Main From</a>
+        </div>
+    </div>
+</body>
+</html>

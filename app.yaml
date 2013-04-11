@@ -42,7 +42,7 @@ handlers:
   static_dir: static/css
 
 - url: /mobile
-  static_dir: static/mobile/1.1.1
+  static_dir: static/mobile/jqm
 
 - url: /js
   mime_type: text/javascript

@@ -11,7 +11,8 @@ import secrets
 import re
 
 from ndb import Key
-
+from google.appengine.ext.webapp import blobstore_handlers
+from google.appengine.ext import blobstore
 import webapp2
 from webapp2_extras import auth, sessions, jinja2
 from jinja2.runtime import TemplateNotFound
@@ -57,6 +58,8 @@ def user_required(handler):
             return handler(self, *args, **kwargs)
 
     return check_login
+	
+
 
 def prefetch_refprops(entities, *props):
     fields = [(entity, prop) for entity in entities for prop in props]
@@ -139,7 +142,12 @@ class LoginHandler(BaseRequestHandler):
   def get(self):
     """Handles default langing page"""
     self.render('mob_login.html')
-    
+
+class Argu2(BaseRequestHandler):
+  def get(self):
+    """Handles test argu2 page"""
+    self.render('argu_form2.html')
+	
 class ProfileHandler(BaseRequestHandler):
   def get(self):
     """Handles GET /profile"""    
@@ -150,6 +158,20 @@ class ProfileHandler(BaseRequestHandler):
     else:
       self.redirect('/')
 
+class _101(BaseRequestHandler):
+    def get(self):
+        b=Branch()
+        b.branch="Business"
+        b.put()
+        b=Branch()
+        b.branch="Economics"
+        b.put()
+        b=Branch()
+        b.branch="Entertainment"
+        b=Branch()
+        b.branch="World Affairs"
+        b.put()	
+        self.render('index.html')
 
 class AuthHandler(BaseRequestHandler, SimpleAuthHandler):
   """Authentication handler for OAuth 2.0, 1.0(a) and OpenID."""
@@ -252,8 +274,7 @@ class AuthHandler(BaseRequestHandler, SimpleAuthHandler):
           user_attrs.setdefault(*key(v))
           
     return user_attrs
-    
-    
+ 
 class ImageHandler(webapp2.RequestHandler):
     def get(self):
         #logging.info("T!!!!!!!!!!!!!!!!!!!!!!HE value of contention is %s", self.request.get("entity_id"))
@@ -269,7 +290,23 @@ class ImageHandler(webapp2.RequestHandler):
             self.response.out.write(elem.image)
         else:
             self.redirect('/static/ok.png')
-        
+			
+class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
+    def post(self):
+        type = self.request.get("i_type")
+        the_ID = self.request.get("i_entity_id")
+        if type == "con":
+            c = Contention.get_by_id(int(the_ID))
+            blob_info = self.get_uploads()[0]
+            c.blob=blob_info.key()
+            c.put()
+        elif type == "elem":
+            e = Elements.get_by_id(int(the_ID))
+            blob_info = self.get_uploads()[0]
+            e.blob=blob_info.key()
+            e.put()
+        return
+	
 class IndexHandler(BaseRequestHandler):
     def get(self):
         contention_query =  Contention.all().order('-date')
@@ -305,7 +342,7 @@ class latestgolciHandler(BaseRequestHandler):
         self.response.out.write(json.dumps(data)) 
 
 class SimpleArgHandler(BaseRequestHandler):
-    #@user_required
+    @user_required
     def get(self):
         edit = self.request.get('edit')
         type = self.request.get('type')      
@@ -316,10 +353,12 @@ class SimpleArgHandler(BaseRequestHandler):
         branches = branch_query.fetch(10)
         ari_query =  Ari_types.all().order('ari')
         aris = ari_query.fetch(50)
+        FORM_DATA="""UPLOAD: <input type="file" name="file_param"/>"""
         if edit=="0" or edit=="":
             params = {
                 'branches' : branches,
                 'aris' : aris,
+				'FORM_DATA' : FORM_DATA
                   }
         elif edit=="1":
             contention_ID = self.request.get('c_id')
@@ -344,6 +383,7 @@ class SimpleArgHandler(BaseRequestHandler):
                 'elem': elem,                
                 'elems': sub_elems,
                 'aris' : aris,
+				'form_url': blobstore.create_upload_url('/upload')
                 #'count': count,
                   }
 
@@ -357,11 +397,14 @@ class SimpleArgHandler(BaseRequestHandler):
             # url_linktext = 'Login'
 
         return self.render('argu_form.html', params)
-        
-class Postgolci(BaseRequestHandler):
+		
     @user_required
     def post(self):
         branch_name = self.request.get('branch_name')
+        logging.info(self.request.POST)
+        field_storage = self.request.POST.multi['picture_url_0']
+        mimetype = field_storage.type
+        logging.info("Mimetype: {}".format(mimetype))
         picture_url_0 = self.request.get('picture_url_0')
         user = self.current_user
         branch_q = db.GqlQuery("SELECT * FROM Branch WHERE branch = :1", branch_name)
@@ -369,7 +412,7 @@ class Postgolci(BaseRequestHandler):
         #branch = Branch(parent=branch_key('Business'))
         #branch_key = branch.Key().id()
         #b_key = db.Key.from_path('Branch', branch)
-        tag_list1 = split(self.request.get('form_content_0'))
+        #tag_list1 = split(self.request.get('form_content_0'))
         tag_list=['one','two','three']
         c = Contention(branch_key=branch, tags=tag_list )
 
@@ -379,7 +422,9 @@ class Postgolci(BaseRequestHandler):
         c.content = self.request.get('form_content_0')
         c.branch_name = branch_name
         #c.image_URL = picture_url
-        c.image = db.Blob(urlfetch.Fetch(picture_url_0).content)
+        #logging.info()
+        if picture_url_0 != '':
+            c.image = db.Blob(picture_url_0)
         if self.logged_in:
             logging.info('Checking currently logged in user')
             logging.info(self.current_user.name)
@@ -397,7 +442,79 @@ class Postgolci(BaseRequestHandler):
                 pict = self.request.get(pic)
                 r = Elements(contention_key=c)
                 r.element_type='reason'
-                r.image = db.Blob(urlfetch.Fetch(pict).content)
+                if pict != '':
+                    r.image = db.Blob(urlfetch.Fetch(pict).content)
+                rcon = 'form_reason_'+str(reas)
+                r.content = self.request.get(rcon)
+                r.branch_name = branch_name
+                if self.logged_in:
+                    sessiony = self.auth.get_user_by_session()
+                    r.author = self.current_user.name
+                    r.author_id = sessiony['user_id']
+                r.put()
+
+        if objections > 0:
+            for objs in range(1,objections+1):
+                picobjs = objs + 5
+                pic = 'picture_url_' + str(picobjs)
+                pict = self.request.get(pic)
+                o = Elements(contention_key=c)
+                o.element_type='objection'
+                if pict != '':
+                    o.image = db.Blob(urlfetch.Fetch(pict).content)
+                ocon = 'form_objection_'+str(objs)
+                o.content = self.request.get(ocon)
+                o.branch_name = branch_name
+                if self.logged_in:
+                    sessiony = self.auth.get_user_by_session()
+                    o.author = self.current_user.name
+                    o.author_id = sessiony['user_id']
+                o.put()
+        
+        self.redirect('/contention?con_id=%s' % c.key().id())
+        
+class Postgolci(BaseRequestHandler):
+    @user_required
+    def post(self):
+        branch_name = self.request.get('branch_name')
+        picture_url_0 = self.request.get('picture_url_0')
+        user = self.current_user
+        branch_q = db.GqlQuery("SELECT * FROM Branch WHERE branch = :1", branch_name)
+        branch = branch_q.get()
+        #branch = Branch(parent=branch_key('Business'))
+        #branch_key = branch.Key().id()
+        #b_key = db.Key.from_path('Branch', branch)
+        #tag_list1 = split(self.request.get('form_content_0'))
+        tag_list=['one','two','three']
+        c = Contention(branch_key=branch, tags=tag_list )
+
+        # if users.get_current_user():
+            # c.author = users.get_current_user()
+            
+        c.content = self.request.get('form_content_0')
+        c.branch_name = branch_name
+        #c.image_URL = picture_url
+        if picture_url_0 != '':
+            c.image = db.Blob(picture_url_0)
+        if self.logged_in:
+            logging.info('Checking currently logged in user')
+            logging.info(self.current_user.name)
+            sessiony = self.auth.get_user_by_session()
+            c.author = self.current_user.name
+            c.author_id = sessiony['user_id']
+        c.put()
+        reason = ['1','2']
+        objection = ['1','2','3','4','5','6','7','8','9','10']
+        reasons = int(self.request.get('_reasons'))
+        objections = int(self.request.get('_objections'))
+        if reasons > 0:
+            for reas in range(1, reasons+1):
+                pic = 'picture_url_' + str(reas)
+                pict = self.request.get(pic)
+                r = Elements(contention_key=c)
+                r.element_type='reason'
+                if pict != '':
+                    r.image = db.Blob(urlfetch.Fetch(pict).content)
                 rcon = 'form_reason_'+str(reas)
                 r.content = self.request.get(rcon)
                 #r.author = user.name
@@ -415,7 +532,8 @@ class Postgolci(BaseRequestHandler):
                 pict = self.request.get(pic)
                 o = Elements(contention_key=c)
                 o.element_type='objection'
-                o.image = db.Blob(urlfetch.Fetch(pict).content)
+                if pict != '':
+                    o.image = db.Blob(urlfetch.Fetch(pict).content)
                 ocon = 'form_objection_'+str(objs)
                 o.content = self.request.get(ocon)
                 #o.author = user.name
@@ -709,3 +827,17 @@ class DynamicHandler(BaseRequestHandler):
                 'gols':gols
                 }
         return self.render('dynamic.html', params)
+		
+class Tester(BaseRequestHandler):		
+    def get(self):
+        params = {}	
+        return self.render('test.html', params)
+		
+    def post(self):
+        field_storage = self.request.POST["file"]
+        try:
+            mimetype = field_storage.type
+            self.response.write("Mimetype: {}".format(mimetype))
+            self.response.write(self.request.POST)
+        except:
+            self.response.write("No FieldStorage object, field_storage={}".format(field_storage))    

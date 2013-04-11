@@ -84,7 +84,7 @@ class InitClassifier(BaseRequestHandler):
         # only way to initialize is call flush or first ever call to initc after app deploy
         # forums say need to use a verions tag from os.environ
         minit = 0
-        labels, mapping, alwayson = pickle.load( open(os.path.join(os.path.dirname(__file__), "nltk\\tagger-map-weight-merge.pickle"), 'rb'))
+        labels, mapping, alwayson = pickle.load( open(os.path.join(os.path.dirname(__file__), "tagger-map-weight-merge.pickle"), 'rb'))
         if not memcache.get('tagger'):
             memcache.set('tagger', (labels, alwayson))
         #memcache allows only 1MB writes so need to break up mapping     
@@ -105,7 +105,7 @@ def Reply(text):
     tok = memcache.get('tok')
     parsr = memcache.get('parsr')
     if not tok:
-        tok = pickle.load(open(os.path.join(os.path.dirname(__file__), "nltk\\english.pickle")))
+        tok = pickle.load(open(os.path.join(os.path.dirname(__file__), "english.pickle")))
         memcache.set('tok', tok)
     #text = self.request.get("text")
     #if len(text) > "":
