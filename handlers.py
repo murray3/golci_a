@@ -68,6 +68,36 @@ def prefetch_refprops(entities, *props):
     for (entity, prop), ref_key in zip(fields, ref_keys):
         prop.__set__(entity, ref_entities[ref_key])
     return entities
+	
+def rec_con(parents,children):
+	od={}
+	for p in parents:
+		pdict={}
+		pdict['top_level']=str(p.top_level)
+		pdict['parent_id']=str(p.parent_id)
+		pdict['branch_name']=str(p.branch_name)		
+		pdict['content']=str(p.content)
+		pdict['author']=str(p.author)
+		pdict['element_type']=str(p.element_type)
+		pdict['description']=str(p.description)       
+		pdict['date']=str(p.date)
+		pid=p.key().id()
+		tgl=0
+		for c in children:
+			if c.parent_id==pid:
+				if tgl==0:
+				   kids=[]
+				   kids.append(c)
+				   tgl=1
+				   #children.remove(c)
+				else:
+				   kids.append(c)
+				   #children.remove(c)
+				pdict['subnodes']=self.ins(kids,children)
+		od[str(pid)]=pdict       
+	return od
+	
+	
     
 class BaseRequestHandler(webapp2.RequestHandler):
   def dispatch(self):
@@ -158,20 +188,8 @@ class ProfileHandler(BaseRequestHandler):
     else:
       self.redirect('/')
 
-class _101(BaseRequestHandler):
-    def get(self):
-        b=Branch()
-        b.branch="Business"
-        b.put()
-        b=Branch()
-        b.branch="Economics"
-        b.put()
-        b=Branch()
-        b.branch="Entertainment"
-        b=Branch()
-        b.branch="World Affairs"
-        b.put()	
-        self.render('index.html')
+
+	  
 
 class AuthHandler(BaseRequestHandler, SimpleAuthHandler):
   """Authentication handler for OAuth 2.0, 1.0(a) and OpenID."""
@@ -353,19 +371,21 @@ class SimpleArgHandler(BaseRequestHandler):
         branches = branch_query.fetch(10)
         ari_query =  Ari_types.all().order('ari')
         aris = ari_query.fetch(50)
-        FORM_DATA="""UPLOAD: <input type="file" name="file_param"/>"""
         if edit=="0" or edit=="":
+		    p_type = "contention"
             params = {
                 'branches' : branches,
-                'aris' : aris,
-				'FORM_DATA' : FORM_DATA
+                'p_type': p_type,
+                'aris' : aris
                   }
         elif edit=="1":
             contention_ID = self.request.get('c_id')
             con = Contention.get_by_id(int(contention_ID))
-            top_elems = con.top_elems.fetch(999)                
+            top_elems = con.top_elems.fetch(999)
+		    p_type = "contention"                
             params = {
                 'branches': branches,
+                'p_type': p_type,
                 'con': con,
                 'elems': top_elems,
                 'aris' : aris,
@@ -374,11 +394,27 @@ class SimpleArgHandler(BaseRequestHandler):
         elif edit=="2":
             contention_ID = self.request.get('c_id')
             con = Contention.get_by_id(int(contention_ID))
+		    p_type = "element"
+            if con:
+                elems = con.elements.fetch(50)
+                count = int(elems.count(20))+1
+                tlvl=[]
+                slvl=[]
+                elem_ID = int(self.request.get('e_id'))
+                for f in elems:
+                    f_id=f.key().id()
+                    if f_id == elem_ID:
+                        tlvl.append(f)
+                    if f.parent_id == elem_ID:
+                        slvl.append(f)
+			edit_gols = tlvl
+			edit_gols['subnodes']=slvl
             elem_ID = self.request.get('e_id')
             elem = Elements.get_by_id(int(elem_ID)) 
             sub_elems = elem.sub_elems.fetch(999)            
             params = {
                 'branches': branches,
+                'p_type': p_type,
                 'con': con,
                 'elem': elem,                
                 'elems': sub_elems,
@@ -400,7 +436,10 @@ class SimpleArgHandler(BaseRequestHandler):
 		
     @user_required
     def post(self):
+        contention_ID = self.request.get('c_id')
+        con = Contention.get_by_id(int(contention_ID))
         branch_name = self.request.get('branch_name')
+        premise_type = self.request.get('p_type')
         logging.info(self.request.POST)
         field_storage = self.request.POST.multi['picture_url_0']
         mimetype = field_storage.type
@@ -414,11 +453,10 @@ class SimpleArgHandler(BaseRequestHandler):
         #b_key = db.Key.from_path('Branch', branch)
         #tag_list1 = split(self.request.get('form_content_0'))
         tag_list=['one','two','three']
-        c = Contention(branch_key=branch, tags=tag_list )
-
-        # if users.get_current_user():
-            # c.author = users.get_current_user()
-            
+        if premise_type == "contention":
+            c = Contention(branch_key=branch, tags=tag_list )
+        if premise_type == "element":
+            c = Elements(contention_key=con )			
         c.content = self.request.get('form_content_0')
         c.branch_name = branch_name
         #c.image_URL = picture_url
@@ -440,7 +478,12 @@ class SimpleArgHandler(BaseRequestHandler):
             for reas in range(1, reasons+1):
                 pic = 'picture_url_' + str(reas)
                 pict = self.request.get(pic)
-                r = Elements(contention_key=c)
+                    if premise_type == "contention":
+                        r = Elements(contention_key=c)
+                        r.top_level = 1
+                    if premise_type == "element":
+                        r = Elements(contention_key=con,parent_id = c)
+                        r.top_level = 0
                 r.element_type='reason'
                 if pict != '':
                     r.image = db.Blob(urlfetch.Fetch(pict).content)
@@ -459,7 +502,12 @@ class SimpleArgHandler(BaseRequestHandler):
                 pic = 'picture_url_' + str(picobjs)
                 pict = self.request.get(pic)
                 o = Elements(contention_key=c)
-                o.element_type='objection'
+                    if premise_type == "contention":
+                        o = Elements(contention_key=c)
+                        o.top_level = 1
+                    if premise_type == "element":
+                        o = Elements(contention_key=con,parent_id = c)
+                        o.top_level = 0
                 if pict != '':
                     o.image = db.Blob(urlfetch.Fetch(pict).content)
                 ocon = 'form_objection_'+str(objs)
@@ -471,7 +519,7 @@ class SimpleArgHandler(BaseRequestHandler):
                     o.author_id = sessiony['user_id']
                 o.put()
         
-        self.redirect('/contention?con_id=%s' % c.key().id())
+        self.redirect('/reccon?con_id=%s' % c.key().id())
         
 class Postgolci(BaseRequestHandler):
     @user_required
@@ -513,6 +561,7 @@ class Postgolci(BaseRequestHandler):
                 pict = self.request.get(pic)
                 r = Elements(contention_key=c)
                 r.element_type='reason'
+                r.toplevel = 1
                 if pict != '':
                     r.image = db.Blob(urlfetch.Fetch(pict).content)
                 rcon = 'form_reason_'+str(reas)
@@ -532,6 +581,7 @@ class Postgolci(BaseRequestHandler):
                 pict = self.request.get(pic)
                 o = Elements(contention_key=c)
                 o.element_type='objection'
+                o.toplevel = 1
                 if pict != '':
                     o.image = db.Blob(urlfetch.Fetch(pict).content)
                 ocon = 'form_objection_'+str(objs)
@@ -599,7 +649,7 @@ class BranchHandler(BaseRequestHandler):
                 'count': count,
                 }
         return self.render('branch.html', params)
-        
+		
 class ContentHandler(BaseRequestHandler):
     def get(self):
         #branch = self.request.get('branch')
@@ -642,7 +692,54 @@ class ContentHandler(BaseRequestHandler):
                 'rcount': rcount,
                 'ocount': ocount
                 }
-        return self.render('conn2.html', params)
+        return self.render('contention.html', params)
+        
+class RecursiveContentHandler(BaseRequestHandler):
+    def get(self):
+        contention_ID = self.request.get('con_id')
+        con = Contention.get_by_id(int(contention_ID))
+        elems=[]
+        count=0
+        if con:
+            elems = con.elements.fetch(50)
+            count = int(elems.count(20))+1
+        tlvl=[]
+        slvl=[]
+        for f in elems:
+            if f.top_level == 1:
+                tlvl.append(f)
+            else:
+                slvl.append(f)
+        gols=rec_con(tlvl,slvl)
+        objections=[]
+        reasons=[]
+        rcount=0
+        ocount=0
+        ccount=0
+        #contention_query =  Contention.all().order('date')
+        if con:
+            if elems:
+                for r in elems:
+                    if r.element_type=='reason':
+                        reasons.append(r)
+                        rcount = rcount+1
+                for o in elems:
+                    if o.element_type=='objection':
+                        objections.append(o)
+                        ocount = ocount+1
+            ccount = int(len(elems))		
+        params = {
+                'con':con,
+                'reasons':reasons,
+                'objections':objections,
+                'ccount': ccount,
+                'rcount': rcount,
+                'ocount': ocount,
+                'elems':elems,
+                'gols':gols,
+                'count': count
+                }
+        return self.render('recursive_contention.html', params)
         
 class TreeJsonHandler(BaseRequestHandler):
     def treeh(self,parents,childs):
@@ -765,33 +862,6 @@ class TreeHandler(BaseRequestHandler):
 
         
 class DynamicHandler(BaseRequestHandler):
-    def ins(self,parents,children):
-        od={}
-        for p in parents:
-            pdict={}
-            pdict['top_level']=str(p.top_level)
-            pdict['parent_id']=str(p.parent_id)
-            pdict['content']=str(p.content)
-            pdict['author']=str(p.author)
-            pdict['element_type']=str(p.element_type)
-            pdict['description']=str(p.description)       
-            pdict['date']=str(p.date)
-            pid=p.key().id()
-            tgl=0
-            for c in children:
-                if c.parent_id==pid:
-                    if tgl==0:
-                       kids=[]
-                       kids.append(c)
-                       tgl=1
-                       #children.remove(c)
-                    else:
-                       kids.append(c)
-                       #children.remove(c)
-                    pdict['subnodes']=self.ins(kids,children)
-            od[str(pid)]=pdict       
-        return od
-        
     def get(self):
         #branch = self.request.get('branch')
         contention_ID = self.request.get('con_id')
@@ -818,7 +888,7 @@ class DynamicHandler(BaseRequestHandler):
         # else:
             # url = users.create_login_url(self.request.uri)
             # url_linktext = 'Login'
-        gols=self.ins(tl,sl)
+        gols=rec_con(tl,sl)
         #listy={'Contention': {'Reason_1': {'Reason_1a': {'Reason_1b': {}}},'Reason_2': {}}}
         params = {
                 'con':con,

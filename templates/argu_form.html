@@ -332,8 +332,11 @@ $(document).on("change", "#picture_url_0", function() {
   //this.files[0].size gets the size of your file.
    // var filesize = 1048576;
     if (this.files[0].size > 1048576) {
-        alert("Sorry during this alpha test, max image size is 1mb!");
-		this.reset();
+		var pic_0 = $("#picture_url_0");
+		pic_0.replaceWith( pic_0 = pic_0.val('').clone( true ) );
+		setTimeout(function() {
+			alert("Sorry during this alpha test, max image size is 1mb!");
+			}, 0);
     };
 });
     
@@ -536,6 +539,7 @@ $(document).on("click tap", "#checkrules", function() {
         </ul>
 		<div style="display:none">
         <input type="file" id="picture_url_0" name="picture_url_0" >
+        <input type="hidden" id="p_type" name="p_type" value="{{ p_type }}">
         <input type="hidden" id="_reasons" name="_reasons" value="">
         <input type="hidden" id="_objections" name="_objections" value="">
         <input type="hidden" id="picture_url_1" name="picture_url_1" value="">
@@ -579,7 +583,7 @@ $(document).on("click tap", "#checkrules", function() {
     </div>
     <div data-role="content" data-theme="c">
 		<h3>Add additional data</h3>
-		<a href="#add_images" data-role="button" data-rel="dialog" data-transition="pop" data-theme="d">Add Images to the post</a>       
+		<a href="#" data-role="button" data-rel="dialog" id="pic_button" data-theme="d">Add Image</a>      
 		<a href="#" data-role="button" data-rel="dialog" data-transition="slidedown" data-theme="d">Add Location</a>      
 		<a href="#" data-role="button" data-rel="dialog" data-transition="slidedown" data-theme="d">Add Historical Date</a> 
         <a href="#add_fallacy" data-role="button" data-rel="dialog" data-transition="pop" data-theme="d">Tag this post with an Ari.</a>        

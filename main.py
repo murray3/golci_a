@@ -43,6 +43,7 @@ routes = [
   Route('/menu', handler='handlers.HomeMenuHandler', name='menu'),
   Route('/branch', handler='handlers.BranchHandler', name='branch'),
   Route('/contention', handler='handlers.ContentHandler', name='contention'),
+  Route('/reccon', handler='handlers.RecursiveContentHandler', name='reccon'),
   Route('/dynamic', handler='handlers.DynamicHandler', name='dynamic'),
   Route('/add', handler='handlers.SimpleArgHandler', name='add'),
   Route('/textmatch', handler='knol_handlers.textmatch', name='textmatch'),
