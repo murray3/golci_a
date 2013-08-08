@@ -62,11 +62,11 @@
         <p><strong>{{ r.author }} Posted on {{r.date}}:</strong></p>
       {% else %}
        <p><strong>An anonymous person wrote:</strong></p>
-      {% endif %}
-      
+      {% endif %}   
       <p>{{ r.content }}</p>
       <p class="ui-li-aside">tagged as {{r.branch_name}}</p>
-      </a></li>
+      </a><a href="/argu?edit=2&c_id={{con.key().id()}}"  data-transition="slideup">Add Element
+			</a></li>
     {% endfor %}
     {% endif %}
     
@@ -79,11 +79,11 @@
         <p><strong>{{ o.author }} Posted on {{o.date}}:</strong></p>
       {% else %}
        <p><strong>An anonymous person wrote:</strong></p>
-      {% endif %}
-      
+      {% endif %}     
       <p>{{ o.content }}</p>
       <p class="ui-li-aside">tagged as {{o.branch_name}}</p>
-      </a></li>
+      </a><a href="/argu?edit=2&c_id={{con.key().id()}}"  data-transition="slideup">Add Element
+			</a></li>
     {% endfor %}
     {% endif %}
     </ul>

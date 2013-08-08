@@ -69,6 +69,35 @@ def prefetch_refprops(entities, *props):
         prop.__set__(entity, ref_entities[ref_key])
     return entities
 	
+def clone_entity(e, skip_auto_now=False, skip_auto_now_add=False, **extra_args):
+  """Clones an entity, adding or overriding constructor attributes.
+
+  The cloned entity will have exactly the same property values as the original
+  entity, except where overridden. By default it will have no parent entity or
+  key name, unless supplied.
+
+  Args:
+    e: The entity to clone
+    skip_auto_now: If True then all DateTimeProperty propertes will be skipped which have the 'auto_now' flag set to True
+    skip_auto_now_add: If True then all DateTimeProperty propertes will be skipped which have the 'auto_now_add' flag set to True
+    extra_args: Keyword arguments to override from the cloned entity and pass
+      to the constructor.
+  Returns:
+    A cloned, possibly modified, copy of entity e.
+  """
+
+  klass = e.__class__
+  props = {}
+  for k, v in klass.properties().iteritems():
+    if not (type(v) == db.DateTimeProperty and ((skip_auto_now and getattr(v, 'auto_now')) or (skip_auto_now_add and getattr(v, 'auto_now_add')))):
+      if type(v) == db.ReferenceProperty:
+        value = getattr(klass, k).get_value_for_datastore(e)
+      else:
+        value = v.__get__(e, klass)
+      props[k] = value
+  props.update(extra_args)
+  return klass(**props)
+	
 def rec_con(parents,children):
 	od={}
 	for p in parents:
@@ -81,6 +110,7 @@ def rec_con(parents,children):
 		pdict['element_type']=str(p.element_type)
 		pdict['description']=str(p.description)       
 		pdict['date']=str(p.date)
+		pdict['e_id']=str(p.key().id())
 		pid=p.key().id()
 		tgl=0
 		for c in children:
@@ -372,52 +402,74 @@ class SimpleArgHandler(BaseRequestHandler):
         ari_query =  Ari_types.all().order('ari')
         aris = ari_query.fetch(50)
         if edit=="0" or edit=="":
-		    p_type = "contention"
+            p_type = "contention"
             params = {
                 'branches' : branches,
+                'edit': edit,
                 'p_type': p_type,
                 'aris' : aris
                   }
         elif edit=="1":
             contention_ID = self.request.get('c_id')
             con = Contention.get_by_id(int(contention_ID))
-            top_elems = con.top_elems.fetch(999)
-		    p_type = "contention"                
+            p_type = "contention" 
+            reasons = {}
+            objections = {}
+            if con:
+                elems = con.elements.fetch(50)
+                count = int(elems.count(20))+1
+                rsn =0
+                objn =0
+                for f in elems:
+                    if f.top_level == 1:
+                        if f.element_type == 'reason':
+                            rsn=rsn+1
+                            reasons['reason'+str(rsn)]=f                      
+                        if f.element_type == 'objection':
+                            objn=objn+1
+                            objections['objection'+str(objn)]=f 			
             params = {
                 'branches': branches,
+                'edit': edit,
                 'p_type': p_type,
                 'con': con,
-                'elems': top_elems,
+                'elems': elems,
+                'reasons': reasons,
+                'objections': objections,
                 'aris' : aris,
                 #'count': count,
                   }
         elif edit=="2":
             contention_ID = self.request.get('c_id')
             con = Contention.get_by_id(int(contention_ID))
-		    p_type = "element"
+            p_type = "element"
+            reasons = []
+            objections = []
             if con:
                 elems = con.elements.fetch(50)
                 count = int(elems.count(20))+1
-                tlvl=[]
-                slvl=[]
                 elem_ID = int(self.request.get('e_id'))
+                rsn =0
+                objn =0
                 for f in elems:
-                    f_id=f.key().id()
-                    if f_id == elem_ID:
-                        tlvl.append(f)
                     if f.parent_id == elem_ID:
-                        slvl.append(f)
-			edit_gols = tlvl
-			edit_gols['subnodes']=slvl
+                        if f.element_type == 'reason':
+                            rsn=rsn+1
+                            reasons['reason'+str(rsn)]=f                      
+                        if f.element_type == 'objection':
+                            objn=objn+1
+                            objections['objection'+str(objn)]=f 
+			#edit_gols['subnodes']=slvl
             elem_ID = self.request.get('e_id')
-            elem = Elements.get_by_id(int(elem_ID)) 
-            sub_elems = elem.sub_elems.fetch(999)            
+            elem = Elements.get_by_id(int(elem_ID))         
             params = {
                 'branches': branches,
+                'edit': edit,
                 'p_type': p_type,
                 'con': con,
-                'elem': elem,                
-                'elems': sub_elems,
+                'elem': elem,
+                'reasons': reasons,
+                'objections': objections,
                 'aris' : aris,
 				'form_url': blobstore.create_upload_url('/upload')
                 #'count': count,
@@ -436,9 +488,8 @@ class SimpleArgHandler(BaseRequestHandler):
 		
     @user_required
     def post(self):
-        contention_ID = self.request.get('c_id')
-        con = Contention.get_by_id(int(contention_ID))
         branch_name = self.request.get('branch_name')
+        edit_type = self.request.get('e_type')
         premise_type = self.request.get('p_type')
         logging.info(self.request.POST)
         field_storage = self.request.POST.multi['picture_url_0']
@@ -453,61 +504,180 @@ class SimpleArgHandler(BaseRequestHandler):
         #b_key = db.Key.from_path('Branch', branch)
         #tag_list1 = split(self.request.get('form_content_0'))
         tag_list=['one','two','three']
+        step=0
         if premise_type == "contention":
-            c = Contention(branch_key=branch, tags=tag_list )
+            if edit_type == "0":	
+                c = Contention(branch_key=branch, tags=tag_list )
+                c.content = self.request.get('form_content_0')
+                c.branch_name = branch_name
+                if self.logged_in:
+                    logging.info('Checking currently logged in user')
+                    logging.info(self.current_user.name)
+                    sessiony = self.auth.get_user_by_session()
+                    c.author = self.current_user.name
+                    c.author_id = sessiony['user_id']
+                c.put()
+                if picture_url_0 != '':
+                    i = Images(branch_key=branch, contention_key=c )
+                    i.image = db.Blob(picture_url_0)
+                    i.element_type = "contention"
+                    i.description = self.request.get('image_description_0')
+                    if self.logged_in:
+                        i.author = self.current_user.name
+                        i.author_id = sessiony['user_id']
+                    i.put()
+                    c.image_id=i.key().id()
+                    c.put()
+            elif edit_type == "1":
+                contention_ID = self.request.get('c_id')
+                con = Contention.get_by_id(int(contention_ID))
+                step = con.gframes
+                gframe = Elements(contention_key=con, element_type="contention", gframe=step, image_id=con.image_id, author=con.author, author_id=con.author_id, content=con.content )
+                gframe.put()
+                con.content = self.request.get('form_content_0')
+                con.gframes = step + 1
+                if picture_url_0 != '':
+                    i = Images(branch_key=branch, contention_key=c )
+                    i.image = db.Blob(picture_url_0)
+                    i.element_type = "contention"
+                    i.description = self.request.get('image_description_0')
+                    if self.logged_in:
+                        sessiony = self.auth.get_user_by_session()
+                        i.author = self.current_user.name
+                        i.author_id = sessiony['user_id']
+                    i.put()
+                    con.image_id=i.key().id()
+                con.put()
         if premise_type == "element":
-            c = Elements(contention_key=con )			
-        c.content = self.request.get('form_content_0')
-        c.branch_name = branch_name
-        #c.image_URL = picture_url
-        #logging.info()
-        if picture_url_0 != '':
-            c.image = db.Blob(picture_url_0)
-        if self.logged_in:
-            logging.info('Checking currently logged in user')
-            logging.info(self.current_user.name)
-            sessiony = self.auth.get_user_by_session()
-            c.author = self.current_user.name
-            c.author_id = sessiony['user_id']
-        c.put()
-        reason = ['1','2']
-        objection = ['1','2','3','4','5','6','7','8','9','10']
+            contention_ID = self.request.get('c_id')
+            con = Contention.get_by_id(int(contention_ID))			
+            if edit_type == "0":	
+                c = Elements(contention_key=con, gframe=step)
+                c.content = self.request.get('form_content_0')
+                c.branch_name = branch_name
+                if self.logged_in:
+                    logging.info('Checking currently logged in user')
+                    logging.info(self.current_user.name)
+                    sessiony = self.auth.get_user_by_session()
+                    c.author = self.current_user.name
+                    c.author_id = sessiony['user_id']
+                c.put()
+                if picture_url_0 != '':
+                    i = Images(branch_key=branch, contention_key=con )
+                    i.image = db.Blob(picture_url_0)
+                    i.element_type = "contention"
+                    i.description = self.request.get('image_description_0')
+                    if self.logged_in:
+                        i.author = self.current_user.name
+                        i.author_id = sessiony['user_id']
+                    i.put()
+                    c.image_id=i.key().id()
+                    c.put()
+                    con.gframes = step+1
+                    con.put()
+            elif edit_type == "1":
+                contention_ID = self.request.get('c_id')
+                con = Contention.get_by_id(int(contention_ID))
+                gframe = Elements(contention_key=con, element_type="contention", gframe=step, image_id=con.image_id, author=con.author, author_id=con.author_id, content=con.content )
+                gframe.put()
+                con.content = self.request.get('form_content_0')
+                con.gframes = step + 1
+                if picture_url_0 != '':
+                    i = Images(branch_key=branch, contention_key=c )
+                    i.image = db.Blob(picture_url_0)
+                    i.element_type = "contention"
+                    i.description = self.request.get('image_description_0')
+                    if self.logged_in:
+                        sessiony = self.auth.get_user_by_session()
+                        i.author = self.current_user.name
+                        i.author_id = sessiony['user_id']
+                    i.put()
+                    con.image_id=i.key().id()
+                con.put()
+		
+		
         reasons = int(self.request.get('_reasons'))
         objections = int(self.request.get('_objections'))
         if reasons > 0:
-            for reas in range(1, reasons+1):
-                pic = 'picture_url_' + str(reas)
-                pict = self.request.get(pic)
+            if edit_type == "0":
+                for reas in range(1, reasons+1):
+                    pic = 'picture_url_' + str(reas)
+                    pict = self.request.get(pic)
                     if premise_type == "contention":
-                        r = Elements(contention_key=c)
-                        r.top_level = 1
+                        r = Elements(contention_key=c, top_level=1, gframe=step)
                     if premise_type == "element":
-                        r = Elements(contention_key=con,parent_id = c)
-                        r.top_level = 0
-                r.element_type='reason'
-                if pict != '':
-                    r.image = db.Blob(urlfetch.Fetch(pict).content)
-                rcon = 'form_reason_'+str(reas)
-                r.content = self.request.get(rcon)
-                r.branch_name = branch_name
-                if self.logged_in:
-                    sessiony = self.auth.get_user_by_session()
-                    r.author = self.current_user.name
-                    r.author_id = sessiony['user_id']
-                r.put()
+                        r = Elements(contention_key=con, top_level=0, gframe=step, parent_id = c.key().id())
+                    r.element_type='reason'
+                    if pict != '':
+                        i = Images(branch_key=branch, contention_key=c )
+                        i.image = db.Blob(picture_url_0)
+                        i.element_type = "contention"
+                        i.description = self.request.get('image_description_0')
+                        if self.logged_in:
+                            sessiony = self.auth.get_user_by_session()
+                            i.author = self.current_user.name
+                            i.author_id = sessiony['user_id']
+                        i.put()
+                    r.image_id=i.key().id()
+                    rcon = 'form_reason_'+str(reas)
+                    r.content = self.request.get(rcon)
+                    r.branch_name = branch_name
+                    if self.logged_in:
+                        sessiony = self.auth.get_user_by_session()
+                        r.author = self.current_user.name
+                        r.author_id = sessiony['user_id']
+                    r.put()
 
+            elif edit_type == "1":
+                for reas in range(1, reasons+1):
+                    pic = 'picture_url_' + str(reas)
+                    pict = self.request.get(pic)
+                    el_id = 'form_reason_'+str(reas)+'_'
+                    e_id = self.request.get(el_id)
+                    rcon = 'form_reason_'+str(reas)
+                    r_content = self.request.get(rcon)
+                    r = Elements.get_by_id(int(e_id))	
+                    if r_content != r.content:					
+                        if premise_type == "contention":
+                            gframe = Elements(contention_key=con, element_type="reason", gframe=step, image_id=r.image_id, author=r.author, author_id=r.author_id, content=r.content )
+                            gframe.put()
+                            r.content = r_content
+                            r.gframe = con.gframes
+                        if premise_type == "element":
+                            r = Elements(contention_key=con,parent_id = c.key().id())
+                            r.top_level = 0
+                        r.element_type='reason'
+                        if pict != '':
+                            i = Images(branch_key=branch, contention_key=c )
+                            i.image = db.Blob(picture_url_0)
+                            i.element_type = "contention"
+                            i.description = self.request.get('image_description_0')
+                            if self.logged_in:
+                                sessiony = self.auth.get_user_by_session()
+                                i.author = self.current_user.name
+                                i.author_id = sessiony['user_id']
+                            i.put()
+                        r.image_id=i.key().id()
+                        rcon = 'form_reason_'+str(reas)
+                        r.content = self.request.get(rcon)
+                        r.branch_name = branch_name
+                        if self.logged_in:
+                            sessiony = self.auth.get_user_by_session()
+                            r.author = self.current_user.name
+                            r.author_id = sessiony['user_id']
+                        r.put()		
         if objections > 0:
             for objs in range(1,objections+1):
                 picobjs = objs + 5
                 pic = 'picture_url_' + str(picobjs)
                 pict = self.request.get(pic)
                 o = Elements(contention_key=c)
-                    if premise_type == "contention":
-                        o = Elements(contention_key=c)
-                        o.top_level = 1
-                    if premise_type == "element":
-                        o = Elements(contention_key=con,parent_id = c)
-                        o.top_level = 0
+                if premise_type == "contention":
+                    o = Elements(contention_key=c)
+                    o.top_level = 1
+                if premise_type == "element":
+                    o = Elements(contention_key=con,parent_id = c)
+                    o.top_level = 0
                 if pict != '':
                     o.image = db.Blob(urlfetch.Fetch(pict).content)
                 ocon = 'form_objection_'+str(objs)
@@ -521,96 +691,8 @@ class SimpleArgHandler(BaseRequestHandler):
         
         self.redirect('/reccon?con_id=%s' % c.key().id())
         
-class Postgolci(BaseRequestHandler):
-    @user_required
-    def post(self):
-        branch_name = self.request.get('branch_name')
-        picture_url_0 = self.request.get('picture_url_0')
-        user = self.current_user
-        branch_q = db.GqlQuery("SELECT * FROM Branch WHERE branch = :1", branch_name)
-        branch = branch_q.get()
-        #branch = Branch(parent=branch_key('Business'))
-        #branch_key = branch.Key().id()
-        #b_key = db.Key.from_path('Branch', branch)
-        #tag_list1 = split(self.request.get('form_content_0'))
-        tag_list=['one','two','three']
-        c = Contention(branch_key=branch, tags=tag_list )
 
-        # if users.get_current_user():
-            # c.author = users.get_current_user()
-            
-        c.content = self.request.get('form_content_0')
-        c.branch_name = branch_name
-        #c.image_URL = picture_url
-        if picture_url_0 != '':
-            c.image = db.Blob(picture_url_0)
-        if self.logged_in:
-            logging.info('Checking currently logged in user')
-            logging.info(self.current_user.name)
-            sessiony = self.auth.get_user_by_session()
-            c.author = self.current_user.name
-            c.author_id = sessiony['user_id']
-        c.put()
-        reason = ['1','2']
-        objection = ['1','2','3','4','5','6','7','8','9','10']
-        reasons = int(self.request.get('_reasons'))
-        objections = int(self.request.get('_objections'))
-        if reasons > 0:
-            for reas in range(1, reasons+1):
-                pic = 'picture_url_' + str(reas)
-                pict = self.request.get(pic)
-                r = Elements(contention_key=c)
-                r.element_type='reason'
-                r.toplevel = 1
-                if pict != '':
-                    r.image = db.Blob(urlfetch.Fetch(pict).content)
-                rcon = 'form_reason_'+str(reas)
-                r.content = self.request.get(rcon)
-                #r.author = user.name
-                r.branch_name = branch_name
-                if self.logged_in:
-                    sessiony = self.auth.get_user_by_session()
-                    r.author = self.current_user.name
-                    r.author_id = sessiony['user_id']
-                r.put()
-
-        if objections > 0:
-            for objs in range(1,objections+1):
-                picobjs = objs + 5
-                pic = 'picture_url_' + str(picobjs)
-                pict = self.request.get(pic)
-                o = Elements(contention_key=c)
-                o.element_type='objection'
-                o.toplevel = 1
-                if pict != '':
-                    o.image = db.Blob(urlfetch.Fetch(pict).content)
-                ocon = 'form_objection_'+str(objs)
-                o.content = self.request.get(ocon)
-                #o.author = user.name
-                o.branch_name = branch_name
-                if self.logged_in:
-                    sessiony = self.auth.get_user_by_session()
-                    o.author = self.current_user.name
-                    o.author_id = sessiony['user_id']
-                o.put()
-        
-        self.redirect('/contention?con_id=%s' % c.key().id())
   
-    @user_required    
-    def get(self):
-        c = Contention()
-
-        # if users.get_current_user():
-            # c.author = users.get_current_user()
-            
-        c.content = self.request.get('text1')
-        c.put()
-        #self.redirect('/index')
-        data = {
-            "content" : c.content,
-            "author" : c.author.name(),
-            }
-        self.response.out.write(json.dumps(data)) 
         
     def branch_key(branch_name):
         """Constructs a datastore key for a Contention entity with branch_name."""

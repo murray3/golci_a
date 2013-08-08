@@ -18,7 +18,7 @@
    
     <link rel="stylesheet"  href="/mobile/jquery.mobile-1.1.1.css" />
     <link rel="stylesheet"  href="/mobile/golci.css" />
-    <link type="text/css" href="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.css" rel="stylesheet" />
+    <link type="text/css" href=//"http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.css" rel="stylesheet" />
 
     {% block mediaCSS %}{% endblock %}
     {% block mediaJSTOP %}{% endblock %}
@@ -39,17 +39,19 @@
     </div><!-- /header -->
 {% endblock %}
 	<div> <!-- /content -->
-			<ul data-role="listview" data-theme="d" data-divider-theme="d"  data-split-icon="gear" data-split-theme="d"> 
+			<ul data-role="listview" data-theme="d" data-divider-theme="d"  data-split-icon="plus" data-split-theme="d"> 
 				<li data-role="list-divider">Contention: <span class="ui-li-count">Total Nodes: {{ccount}}</span></li>
 				<li>
-					<a href="contention.html">
+					<a href=#>
 						<img src="/image?type=con&entity_id={{ con.key().id()}}" style="width:100%; height:100%"/>
 						{% if con.author %}
 						<p><strong>{{ con.author }} Posted on {{con.date}}:</strong></p>
 						{% else %}
 						<p><strong>An anonymous person wrote:</strong></p>
-						{% endif %}     
+						{% endif %}  
+
 						<p>{{ con.content }}</p>
+
 						<p class="ui-li-aside">tagged as {{con.branch_name}}</p>
 					</a>
 					<a href="/argu?edit=1&c_id={{con.key().id()}}"  data-transition="slideup">Add Element
@@ -60,7 +62,7 @@
 				{{ gols }}
 				{%- for k in gols recursive -%}   				
 				<li>
-					<a href="contention.html">
+					<a href=#>
 						<img src="/image?type=elem&entity_id={{ k }}" style="width:100%; height:100%"/>
 						{% if gols[k]['author'] %}
 							<p><strong>{{ gols[k]['author'] }} Posted on {{ gols[k]['date'] }}:</strong></p>
@@ -69,13 +71,16 @@
 						{% endif %}
 						<p>{{ gols[k]['content'] }}</p>
 						<p class="ui-li-aside">tagged as {{ gols[k]['branch_name'] }}</p>
-					</a>                                                                                                                               
+					</a><a href="/argu?edit=2&c_id={{con.key().id()}}&e_id={{ k }}"  data-ajax="false" data-transition="slideup">Add Element
+			</a>                                        
+					           
 					{%- if gols[k]['subnodes'] %}                                                                                                 
 					<ul>{{ loop(gols[k]['subnodes']) }}</ul>                                     
 					{%- endif %}                                                            
 				</li>                                                                     
 				{%- endfor %}
-    		</ul>		
+    		</ul>	
+		
         </div><!-- /content -->
 
     </div><!-- /page -->

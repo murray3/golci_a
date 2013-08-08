@@ -289,6 +289,7 @@ window.iargu_globals = {
 $("#_reasons").val(2);
 $("#_objections").val(0);
 //alert("go");
+
 });
 
 $(document).on("click tap", "a[id^='add_btn']", function() {
@@ -390,6 +391,7 @@ $(document).on("click", "#add_objection", function() {
 $(document).on("click", "#pic_button", function() {
     var pic = $("#pic_input").val();
     if ($("#image_name").val() == "image0") {
+	    $("#image_description_0").val()=pic;
 		$("#picture_url_0").trigger('click');
 	} else if ($("#image_name").val() == "image1") {
 		$("#picture_url_1").val(pic);
@@ -471,57 +473,91 @@ $(document).on("click tap", "#checkrules", function() {
 		</li>
         <li class="ui-body ui-body-c" id="content_li">
           <label for="branch_name">Contention:</label>
-		  <div id="content_0" name="content_0" class="edit_inline"></div>
+		  <div id="content_0" name="content_0" class="edit_inline">
+            {% if p_type == "contention"  %}						
+             {{ con.content }}
+			{% else %}
+			{{ elem.content }}
+			{% endif %} 
+           </div>
           <div><a id="add_btn_c0" href="#"  data-mini="true" data-role="button"  data-theme="d">Add Images etc</a></div>	
 		</li>
         <li data-role="ui-body ui-body-c" id="reason_li_1">
             <label for="branch_name">Reason 1:</label>
-            <div id="reason_1" name="reason_1" class="edit_inline"></div>
+            <div id="reason_1" name="reason_1" class="edit_inline">
+			{% if reasons['reason1'] %}{{ reasons['reason1']['content'] }}{% endif %}  
+			</div>
           <div><a id="add_btn_r1" href="#"  data-mini="true" data-rel="dialog" data-role="button"  data-transition="flip"  data-theme="d">Add Images etc to R1</a></div>	
 		</li>
         <li data-role="ui-body ui-body-c" id="reason_li_2">
             <label for="branch_name">Reason 2:</label>
-            <div id="reason_2" name="reason_2" class="edit_inline"></div>
+            <div id="reason_2" name="reason_2" class="edit_inline">
+			{% if reasons['reason2'] %}{{ reasons['reason2']['content'] }}{% endif %}  
+			</div>
           <div><a id="add_btn_r2" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-transition="flip"  data-theme="d">Add Images etc to R2</a></div>	
 		</li>   
-        <li data-role="ui-body ui-body-c" id="reason_li_3" style="display:none">
+        <li data-role="ui-body ui-body-c" id="reason_li_3" 
+		{% if not reasons['reason3'] %}style="display:none"{% endif %} >
             <label for="branch_name">Reason 3:</label>
-            <div id="reason_3" name="reason_3" class="edit_inline"></div>
+            <div id="reason_3" name="reason_3" class="edit_inline">
+			{% if reasons['reason3'] %}{{ reasons['reason3']['content'] }}{% endif %}  
+			</div>
           <div><a id="add_btn_r3" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-transition="flip"  data-theme="d">Add Images etc to R3</a></div>	
 		</li>  	  
-        <li data-role="ui-body ui-body-c" id="reason_li_4" style="display:none">
+        <li data-role="ui-body ui-body-c" id="reason_li_4" 
+		{% if not reasons['reason4'] %}style="display:none"{% endif %} >
             <label for="branch_name">Reason 4:</label>
-            <div id="reason_4" name="reason_4" class="edit_inline"></div>
+            <div id="reason_4" name="reason_4" class="edit_inline">
+			{% if reasons['reason4'] %}{{ reasons['reason4']['content'] }}{% endif %}  
+			</div>
           <div><a id="add_btn_r4" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-transition="flip" data-theme="d">Add Images etc to R4</a></div>	
 		</li>  
-        <li data-role="ui-body ui-body-c" id="reason_li_5" style="display:none">
+        <li data-role="ui-body ui-body-c" id="reason_li_5" 
+		{% if not reasons['reason5'] %}style="display:none"{% endif %} >
             <label for="branch_name">Reason 5:</label>
-            <div id="reason_5" name="reason_5" class="edit_inline"></div>
+            <div id="reason_5" name="reason_5" class="edit_inline">
+			{% if reasons['reason5'] %}{{ reasons['reason5']['content'] }}{% endif %}  
+			</div>
           <div><a id="add_btn_r5" href="#"  data-mini="true" data-rel="dialog" data-role="button"  data-transition="flip"  data-theme="d">Add Images etc to R5</a></div>	
 		</li>	
-        <li data-role="ui-body ui-body-c" id="objection_li_1" style="display:none">
+        <li data-role="ui-body ui-body-c" id="objection_li_1" 
+		{% if not objections['objection1'] %}style="display:none"{% endif %} >
             <label for="branch_name">Objection 1:</label>
-            <div id="objection_1" name="objection_1" class="edit_inline"></div>
+            <div id="objection_1" name="objection_1" class="edit_inline">
+			{% if objections['objection1'] %}{{ objections['objection1']['content'] }}{% endif %}  
+			</div>
           <div><a id="add_btn_o1" href="#"  data-mini="true" data-rel="dialog" data-role="button"  data-transition="flip" " data-theme="d">Add Images etc to O1</a></div>	
 		</li>
-        <li data-role="ui-body ui-body-c" id="objection_li_2" style="display:none">
+        <li data-role="ui-body ui-body-c" id="objection_li_2" 
+		{% if not objections['objection2'] %}style="display:none"{% endif %} >
             <label for="branch_name">Objection 2:</label>
-            <div id="objection_2" name="objection_2" class="edit_inline"></div>
+            <div id="objection_2" name="objection_2" class="edit_inline">
+			{% if objections['objection2'] %}{{ objections['objection2']['content'] }}{% endif %}  
+			</div>
           <div><a id="add_btn_o2" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-transition="flip"  data-theme="d">Add Images etc to O2</a></div>	
 		</li>   
-        <li data-role="ui-body ui-body-c" id="objection_li_3" style="display:none">
+        <li data-role="ui-body ui-body-c" id="objection_li_3" 
+		{% if not objections['objection3'] %}style="display:none"{% endif %} >
             <label for="branch_name">Objection 3:</label>
-            <div id="objection_3" name="objection_3" class="edit_inline"></div>
+            <div id="objection_3" name="objection_3" class="edit_inline">
+			{% if objections['objection3'] %}{{ objections['objection3']['content'] }}{% endif %}  
+			</div>
           <div><a id="add_btn_o3" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-transition="flip"  data-theme="d">Add Images etc to O3</a></div>	
 		</li>  	  
-        <li data-role="ui-body ui-body-c" id="objection_li_4" style="display:none">
+        <li data-role="ui-body ui-body-c" id="objection_li_4" 
+		{% if not objections['objection4'] %}style="display:none"{% endif %} >
             <label for="branch_name">Objection 4:</label>
-            <div id="objection_4" name="objection_4" class="edit_inline"></div>
+            <div id="objection_4" name="objection_4" class="edit_inline">
+			{% if objections['objection4'] %}{{ objections['objection4']['content'] }}{% endif %}  
+			</div>
           <div><a id="add_btn_o4" href="#"  data-mini="true" data-rel="dialog" data-role="button"  data-transition="flip"  data-theme="d">Add Images etc to O4</a></div>	
 		</li>  
-        <li data-role="ui-body ui-body-c" id="objection_li_5" style="display:none">
+        <li data-role="ui-body ui-body-c" id="objection_li_5" 
+		{% if not objections['objection5'] %}style="display:none"{% endif %} >
             <label for="branch_name">Objection 5:</label>
-            <div id="objection_5" name="objection_5" class="edit_inline"></div>
+            <div id="objection_5" name="objection_5" class="edit_inline">
+			{% if objections['objection5'] %}{{ objections['objection5']['content'] }}{% endif %}  
+			</div>
           <div><a id="add_btn_o5" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-transition="flip"  data-theme="d">Add Images etc to O5</a></div>	
 		</li>	
     	<li class="ui-body ui-body-c">
@@ -537,11 +573,13 @@ $(document).on("click tap", "#checkrules", function() {
            <input type="submit" value="Post golci">
         </li>
         </ul>
-		<div style="display:none">
-        <input type="file" id="picture_url_0" name="picture_url_0" >
-        <input type="hidden" id="p_type" name="p_type" value="{{ p_type }}">
+		<div style="display:none">    		
+		<input type="hidden" id="e_type" name="e_type" value="{{ edit }}">
+		<input type="hidden" id="p_type" name="p_type" value="{{ p_type }}">
         <input type="hidden" id="_reasons" name="_reasons" value="">
         <input type="hidden" id="_objections" name="_objections" value="">
+        <input type="file" id="picture_url_0" name="picture_url_0" >
+        <input type="hidden" id="image_description_0" name="image_description_0" value="">
         <input type="hidden" id="picture_url_1" name="picture_url_1" value="">
         <input type="hidden" id="picture_url_2" name="picture_url_2" value="">
         <input type="hidden" id="picture_url_3" name="picture_url_3" value="">
@@ -554,6 +592,8 @@ $(document).on("click tap", "#checkrules", function() {
         <input type="hidden" id="picture_url_10" name="picture_url_10" value="">
         <input type="hidden" id="form_content_0" name="form_content_0" value="">
         <input type="hidden" id="form_reason_1" name="form_reason_1" value="">
+        <input type="hidden" id="form_reason_1_" name="form_reason_1_" value="
+		{% if reasons['reason1'] %}{{ reasons['reason1']['e_id'] }}{% endif %}">
         <input type="hidden" id="form_reason_2" name="form_reason_2" value="">
         <input type="hidden" id="form_reason_3" name="form_reason_3" value="">
         <input type="hidden" id="form_reason_4" name="form_reason_4" value="">

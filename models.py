@@ -56,12 +56,7 @@ class Branch(db.Model):
     description = db.StringProperty()
 
 class Tag(db.Model):
-    tag = db.StringProperty()
-	
-class Image(db.Model):
-    name = db.StringProperty()
-    description = db.StringProperty()
-    image = db.BlobProperty()
+    tag = db.StringProperty()	
     
 class Golci(db.Model):
     # Basic info.
@@ -80,31 +75,42 @@ class Contention(db.Model):
     branch_key = db.ReferenceProperty(Branch,
                                collection_name='contentions')
     branch_name = db.StringProperty()
+    draft = db.BooleanProperty(default=True)
+    g_frames = db.IntegerProperty()
     text = db.StringProperty()
     description = db.StringProperty()
     step_count = db.IntegerProperty()
     #tags = db.StringListProperty()
     #blob = blobstore.BlobReferenceProperty(required=True)
-    image_URL = db.StringProperty()
+    image_id = db.StringProperty()
     image = db.BlobProperty()
-    image_1 = db.BlobProperty()
-    image_2 = db.BlobProperty()
-    image_3 = db.BlobProperty()
-    image_4 = db.BlobProperty()
+
     
 def ancestor_list_validator(l):
     if len(l) != len(set(l)):
         raise Exception("Repeated values in ancestor list!")
 
+class Images(db.Model):
+    contention_key = db.ReferenceProperty(Contention,
+                               collection_name='images')
+    author = db.StringProperty()
+    author_id = db.IntegerProperty()
+    date = db.DateTimeProperty(auto_now_add=True)
+    parent_id = db.IntegerProperty()
+    element_type = db.StringProperty()
+    decription = db.StringProperty()
+    image = db.BlobProperty()
      
 class Elements(db.Model):
     contention_key = db.ReferenceProperty(Contention,
                                collection_name='elements')
     elements_tree = db.StringProperty()
-    top_level = db.IntegerProperty()                 
+    top_level = db.IntegerProperty()  
+    g_frame = db.IntegerProperty()
+    pending = db.BooleanProperty(default=False)   
     element_keys = db.ListProperty(db.Key, validator=ancestor_list_validator)
     element_type = db.StringProperty(
-        choices=('reason', 'objection', 'rebuttal', 'support'))
+        choices=('contention', 'reason', 'objection', 'rebuttal', 'support'))
     author = db.StringProperty()
     author_id = db.IntegerProperty()
     branch_name = db.StringProperty()
@@ -112,7 +118,7 @@ class Elements(db.Model):
     description = db.StringProperty()
     date = db.DateTimeProperty(auto_now_add=True)
     parent_id = db.IntegerProperty()
-    image_URL = db.StringProperty()
+    image_id = db.StringProperty()
     image = db.BlobProperty()
     image_1 = db.StringProperty()
     image_blob_1 = db.BlobProperty()
