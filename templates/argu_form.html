@@ -391,7 +391,7 @@ $(document).on("click", "#add_objection", function() {
 $(document).on("click", "#pic_button", function() {
     var pic = $("#pic_input").val();
     if ($("#image_name").val() == "image0") {
-	    $("#image_description_0").val()=pic;
+	    //$("#image_description_0").val(pic);
 		$("#picture_url_0").trigger('click');
 	} else if ($("#image_name").val() == "image1") {
 		$("#picture_url_1").val(pic);
@@ -594,8 +594,10 @@ $(document).on("click tap", "#checkrules", function() {
         <input type="hidden" id="form_reason_1" name="form_reason_1" value="">
         <input type="hidden" id="form_reason_1_" name="form_reason_1_" value="
 		{% if reasons['reason1'] %}{{ reasons['reason1']['e_id'] }}{% endif %}">
-        <input type="hidden" id="form_reason_2" name="form_reason_2" value="">
-        <input type="hidden" id="form_reason_3" name="form_reason_3" value="">
+        <input type="hidden" id="form_reason_2" name="form_reason_2" value="
+		{% if reasons['reason2'] %}{{ reasons['reason2']['e_id'] }}{% endif %}">
+        <input type="hidden" id="form_reason_3" name="form_reason_3" value="
+		{% if reasons['reason3'] %}{{ reasons['reason3']['e_id'] }}{% endif %}">
         <input type="hidden" id="form_reason_4" name="form_reason_4" value="">
         <input type="hidden" id="form_reason_5" name="form_reason_5" value="">
         <input type="hidden" id="form_reason_6" name="form_reason_6" value="">
@@ -623,7 +625,7 @@ $(document).on("click tap", "#checkrules", function() {
     </div>
     <div data-role="content" data-theme="c">
 		<h3>Add additional data</h3>
-		<a href="#" data-role="button" data-rel="dialog" id="pic_button" data-theme="d">Add Image</a>      
+		<a href="#add_images" data-role="button" data-rel="dialog" id="pic_button" data-theme="d">Add Image</a>      
 		<a href="#" data-role="button" data-rel="dialog" data-transition="slidedown" data-theme="d">Add Location</a>      
 		<a href="#" data-role="button" data-rel="dialog" data-transition="slidedown" data-theme="d">Add Historical Date</a> 
         <a href="#add_fallacy" data-role="button" data-rel="dialog" data-transition="pop" data-theme="d">Tag this post with an Ari.</a>        

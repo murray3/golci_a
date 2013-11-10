@@ -2,12 +2,12 @@
 
 __author__ = 'Chris Murray - cjjmurray@gmail.com'
 __website__ = 'www.golci.com'
-
+import os
 import logging
-# if os.environ.get(’SERVER_SOFTWARE’, ’’).startswith(’Dev’):
-    # import secrets_local
-# else:
-import secrets
+if os.environ.get('SERVER_SOFTWARE','').startswith('Development'):
+    import secrets_local as secrets
+else:
+    import secrets
 import re
 
 from ndb import Key
@@ -25,10 +25,12 @@ from models import Contention
 from models import Elements
 from models import Branch
 from models import Ari
+from models import Images
 from models import Ari_types
 from models import golci_link
 from models import golci_history
-
+from data_functions import prefetch_refprops
+from data_functions import rec_con
 import json
 
 from datetime import datetime
@@ -57,77 +59,7 @@ def user_required(handler):
         else:
             return handler(self, *args, **kwargs)
 
-    return check_login
-	
-
-
-def prefetch_refprops(entities, *props):
-    fields = [(entity, prop) for entity in entities for prop in props]
-    ref_keys = [prop.get_value_for_datastore(x) for x, prop in fields]
-    ref_entities = dict((x.key(), x) for x in db.get(set(ref_keys)))
-    for (entity, prop), ref_key in zip(fields, ref_keys):
-        prop.__set__(entity, ref_entities[ref_key])
-    return entities
-	
-def clone_entity(e, skip_auto_now=False, skip_auto_now_add=False, **extra_args):
-  """Clones an entity, adding or overriding constructor attributes.
-
-  The cloned entity will have exactly the same property values as the original
-  entity, except where overridden. By default it will have no parent entity or
-  key name, unless supplied.
-
-  Args:
-    e: The entity to clone
-    skip_auto_now: If True then all DateTimeProperty propertes will be skipped which have the 'auto_now' flag set to True
-    skip_auto_now_add: If True then all DateTimeProperty propertes will be skipped which have the 'auto_now_add' flag set to True
-    extra_args: Keyword arguments to override from the cloned entity and pass
-      to the constructor.
-  Returns:
-    A cloned, possibly modified, copy of entity e.
-  """
-
-  klass = e.__class__
-  props = {}
-  for k, v in klass.properties().iteritems():
-    if not (type(v) == db.DateTimeProperty and ((skip_auto_now and getattr(v, 'auto_now')) or (skip_auto_now_add and getattr(v, 'auto_now_add')))):
-      if type(v) == db.ReferenceProperty:
-        value = getattr(klass, k).get_value_for_datastore(e)
-      else:
-        value = v.__get__(e, klass)
-      props[k] = value
-  props.update(extra_args)
-  return klass(**props)
-	
-def rec_con(parents,children):
-	od={}
-	for p in parents:
-		pdict={}
-		pdict['top_level']=str(p.top_level)
-		pdict['parent_id']=str(p.parent_id)
-		pdict['branch_name']=str(p.branch_name)		
-		pdict['content']=str(p.content)
-		pdict['author']=str(p.author)
-		pdict['element_type']=str(p.element_type)
-		pdict['description']=str(p.description)       
-		pdict['date']=str(p.date)
-		pdict['e_id']=str(p.key().id())
-		pid=p.key().id()
-		tgl=0
-		for c in children:
-			if c.parent_id==pid:
-				if tgl==0:
-				   kids=[]
-				   kids.append(c)
-				   tgl=1
-				   #children.remove(c)
-				else:
-				   kids.append(c)
-				   #children.remove(c)
-				pdict['subnodes']=self.ins(kids,children)
-		od[str(pid)]=pdict       
-	return od
-	
-	
+    return check_login   
     
 class BaseRequestHandler(webapp2.RequestHandler):
   def dispatch(self):
@@ -207,7 +139,7 @@ class Argu2(BaseRequestHandler):
   def get(self):
     """Handles test argu2 page"""
     self.render('argu_form2.html')
-	
+    
 class ProfileHandler(BaseRequestHandler):
   def get(self):
     """Handles GET /profile"""    
@@ -219,7 +151,7 @@ class ProfileHandler(BaseRequestHandler):
       self.redirect('/')
 
 
-	  
+      
 
 class AuthHandler(BaseRequestHandler, SimpleAuthHandler):
   """Authentication handler for OAuth 2.0, 1.0(a) and OpenID."""
@@ -328,17 +260,18 @@ class ImageHandler(webapp2.RequestHandler):
         #logging.info("T!!!!!!!!!!!!!!!!!!!!!!HE value of contention is %s", self.request.get("entity_id"))
         type = self.request.get("type")
         the_ID = self.request.get("entity_id")
-        if type == "con":
-            con = Contention.get_by_id(int(the_ID))
-            self.response.headers['Content-Type'] = 'image/jpeg'
-            self.response.out.write(con.image)
-        elif type == "elem":
-            elem = Elements.get_by_id(int(the_ID))
-            self.response.headers['Content-Type'] = 'image/jpeg'
-            self.response.out.write(elem.image)
-        else:
-            self.redirect('/static/ok.png')
-			
+        if not the_ID==None:
+            if type == "con":
+                con = Images.get_by_id(int(the_ID))
+                self.response.headers['Content-Type'] = 'image/jpeg'
+                self.response.out.write(con.image)
+            elif type == "elem":
+                elem = Images.get_by_id(int(the_ID))
+                self.response.headers['Content-Type'] = 'image/jpeg'
+                self.response.out.write(elem.image)
+            else:
+                self.redirect('/static/ok.png')
+            
 class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
     def post(self):
         type = self.request.get("i_type")
@@ -354,7 +287,7 @@ class FileUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
             e.blob=blob_info.key()
             e.put()
         return
-	
+    
 class IndexHandler(BaseRequestHandler):
     def get(self):
         contention_query =  Contention.all().order('-date')
@@ -362,6 +295,7 @@ class IndexHandler(BaseRequestHandler):
         count = "0" #int(cons.count(10))+1
         branch_query =  Branch.all().order('branch')
         branches = branch_query.fetch(10)
+        #images = con.images.fetch(10)
         
         # if users.get_current_user():
             # url = users.create_logout_url(self.request.uri)
@@ -405,6 +339,9 @@ class SimpleArgHandler(BaseRequestHandler):
             p_type = "contention"
             params = {
                 'branches' : branches,
+                'con' : "",
+                'reasons' : "",
+                'objections' : "",
                 'edit': edit,
                 'p_type': p_type,
                 'aris' : aris
@@ -427,7 +364,7 @@ class SimpleArgHandler(BaseRequestHandler):
                             reasons['reason'+str(rsn)]=f                      
                         if f.element_type == 'objection':
                             objn=objn+1
-                            objections['objection'+str(objn)]=f 			
+                            objections['objection'+str(objn)]=f             
             params = {
                 'branches': branches,
                 'edit': edit,
@@ -459,7 +396,7 @@ class SimpleArgHandler(BaseRequestHandler):
                         if f.element_type == 'objection':
                             objn=objn+1
                             objections['objection'+str(objn)]=f 
-			#edit_gols['subnodes']=slvl
+            #edit_gols['subnodes']=slvl
             elem_ID = self.request.get('e_id')
             elem = Elements.get_by_id(int(elem_ID))         
             params = {
@@ -471,7 +408,7 @@ class SimpleArgHandler(BaseRequestHandler):
                 'reasons': reasons,
                 'objections': objections,
                 'aris' : aris,
-				'form_url': blobstore.create_upload_url('/upload')
+                'form_url': blobstore.create_upload_url('/upload')
                 #'count': count,
                   }
 
@@ -485,17 +422,18 @@ class SimpleArgHandler(BaseRequestHandler):
             # url_linktext = 'Login'
 
         return self.render('argu_form.html', params)
-		
+        
     @user_required
     def post(self):
         branch_name = self.request.get('branch_name')
         edit_type = self.request.get('e_type')
         premise_type = self.request.get('p_type')
         logging.info(self.request.POST)
-        field_storage = self.request.POST.multi['picture_url_0']
-        mimetype = field_storage.type
-        logging.info("Mimetype: {}".format(mimetype))
         picture_url_0 = self.request.get('picture_url_0')
+        if  picture_url_0 :
+            field_storage = self.request.POST.multi['picture_url_0']
+            mimetype = field_storage.type
+            logging.info("Mimetype: {}".format(mimetype))
         user = self.current_user
         branch_q = db.GqlQuery("SELECT * FROM Branch WHERE branch = :1", branch_name)
         branch = branch_q.get()
@@ -506,7 +444,7 @@ class SimpleArgHandler(BaseRequestHandler):
         tag_list=['one','two','three']
         step=0
         if premise_type == "contention":
-            if edit_type == "0":	
+            if edit_type == "0":    
                 c = Contention(branch_key=branch, tags=tag_list )
                 c.content = self.request.get('form_content_0')
                 c.branch_name = branch_name
@@ -531,11 +469,14 @@ class SimpleArgHandler(BaseRequestHandler):
             elif edit_type == "1":
                 contention_ID = self.request.get('c_id')
                 con = Contention.get_by_id(int(contention_ID))
-                step = con.gframes
+                if con.g_frames:
+                    step = con.g_frames
+                else:
+                    step = 0                
                 gframe = Elements(contention_key=con, element_type="contention", gframe=step, image_id=con.image_id, author=con.author, author_id=con.author_id, content=con.content )
                 gframe.put()
                 con.content = self.request.get('form_content_0')
-                con.gframes = step + 1
+                con.g_frames = step + 1
                 if picture_url_0 != '':
                     i = Images(branch_key=branch, contention_key=c )
                     i.image = db.Blob(picture_url_0)
@@ -550,8 +491,8 @@ class SimpleArgHandler(BaseRequestHandler):
                 con.put()
         if premise_type == "element":
             contention_ID = self.request.get('c_id')
-            con = Contention.get_by_id(int(contention_ID))			
-            if edit_type == "0":	
+            con = Contention.get_by_id(int(contention_ID))          
+            if edit_type == "0":    
                 c = Elements(contention_key=con, gframe=step)
                 c.content = self.request.get('form_content_0')
                 c.branch_name = branch_name
@@ -573,7 +514,7 @@ class SimpleArgHandler(BaseRequestHandler):
                     i.put()
                     c.image_id=i.key().id()
                     c.put()
-                    con.gframes = step+1
+                    con.g_frames = step+1
                     con.put()
             elif edit_type == "1":
                 contention_ID = self.request.get('c_id')
@@ -581,7 +522,7 @@ class SimpleArgHandler(BaseRequestHandler):
                 gframe = Elements(contention_key=con, element_type="contention", gframe=step, image_id=con.image_id, author=con.author, author_id=con.author_id, content=con.content )
                 gframe.put()
                 con.content = self.request.get('form_content_0')
-                con.gframes = step + 1
+                con.g_frames = step + 1
                 if picture_url_0 != '':
                     i = Images(branch_key=branch, contention_key=c )
                     i.image = db.Blob(picture_url_0)
@@ -594,8 +535,8 @@ class SimpleArgHandler(BaseRequestHandler):
                     i.put()
                     con.image_id=i.key().id()
                 con.put()
-		
-		
+        
+        
         reasons = int(self.request.get('_reasons'))
         objections = int(self.request.get('_objections'))
         if reasons > 0:
@@ -618,7 +559,7 @@ class SimpleArgHandler(BaseRequestHandler):
                             i.author = self.current_user.name
                             i.author_id = sessiony['user_id']
                         i.put()
-                    r.image_id=i.key().id()
+                    #r.image_id=i.key().id()
                     rcon = 'form_reason_'+str(reas)
                     r.content = self.request.get(rcon)
                     r.branch_name = branch_name
@@ -636,13 +577,15 @@ class SimpleArgHandler(BaseRequestHandler):
                     e_id = self.request.get(el_id)
                     rcon = 'form_reason_'+str(reas)
                     r_content = self.request.get(rcon)
-                    r = Elements.get_by_id(int(e_id))	
-                    if r_content != r.content:					
+                    logging.info("this is test")
+                    logging.info('form_reason_'+str(reas)+'_')
+                    r = Elements.get_by_id(int(e_id))   
+                    if r_content != r.content:                  
                         if premise_type == "contention":
                             gframe = Elements(contention_key=con, element_type="reason", gframe=step, image_id=r.image_id, author=r.author, author_id=r.author_id, content=r.content )
                             gframe.put()
                             r.content = r_content
-                            r.gframe = con.gframes
+                            r.g_frame = con.g_frames
                         if premise_type == "element":
                             r = Elements(contention_key=con,parent_id = c.key().id())
                             r.top_level = 0
@@ -657,7 +600,7 @@ class SimpleArgHandler(BaseRequestHandler):
                                 i.author = self.current_user.name
                                 i.author_id = sessiony['user_id']
                             i.put()
-                        r.image_id=i.key().id()
+                        #r.image_id=i.key().id()
                         rcon = 'form_reason_'+str(reas)
                         r.content = self.request.get(rcon)
                         r.branch_name = branch_name
@@ -665,7 +608,7 @@ class SimpleArgHandler(BaseRequestHandler):
                             sessiony = self.auth.get_user_by_session()
                             r.author = self.current_user.name
                             r.author_id = sessiony['user_id']
-                        r.put()		
+                        r.put()     
         if objections > 0:
             for objs in range(1,objections+1):
                 picobjs = objs + 5
@@ -689,7 +632,7 @@ class SimpleArgHandler(BaseRequestHandler):
                     o.author_id = sessiony['user_id']
                 o.put()
         
-        self.redirect('/reccon?con_id=%s' % c.key().id())
+        self.redirect('/conv?con_id=%s' % c.key().id())
         
 
   
@@ -731,7 +674,7 @@ class BranchHandler(BaseRequestHandler):
                 'count': count,
                 }
         return self.render('branch.html', params)
-		
+        
 class ContentHandler(BaseRequestHandler):
     def get(self):
         #branch = self.request.get('branch')
@@ -809,7 +752,7 @@ class RecursiveContentHandler(BaseRequestHandler):
                     if o.element_type=='objection':
                         objections.append(o)
                         ocount = ocount+1
-            ccount = int(len(elems))		
+            ccount = int(len(elems))        
         params = {
                 'con':con,
                 'reasons':reasons,
@@ -822,7 +765,84 @@ class RecursiveContentHandler(BaseRequestHandler):
                 'count': count
                 }
         return self.render('recursive_contention.html', params)
-        
+
+
+class ContentViewHandler(BaseRequestHandler):
+    def get(self):
+        contention_ID = self.request.get('con_id')
+        con = Contention.get_by_id(int(contention_ID))
+        elems=[]
+        count=0
+        if con:
+            elems = con.elements.fetch(50)
+            count = int(elems.count(20))+1
+        tlvl=[]
+        slvl=[]
+        for f in elems:
+            if f.top_level == 1:
+                tlvl.append(f)
+            else:
+                slvl.append(f)
+        gols=rec_con(tlvl,slvl)
+        objections=[]
+        reasons=[]
+        rcount=0
+        ocount=0
+        ccount=0
+        #contention_query =  Contention.all().order('date')
+        if con:
+            if elems:
+                for r in elems:
+                    if r.element_type=='reason':
+                        reasons.append(r)
+                        rcount = rcount+1
+                for o in elems:
+                    if o.element_type=='objection':
+                        objections.append(o)
+                        ocount = ocount+1
+            ccount = int(len(elems))        
+        params = {
+                'c_id':contention_ID,
+                'con':con,
+                'reasons':reasons,
+                'objections':objections,
+                'ccount': ccount,
+                'rcount': rcount,
+                'ocount': ocount,
+                'elems':elems,
+                'gols':gols,
+                'count': count
+                }
+        return self.render('contention_view.html', params)
+
+    @user_required
+    def post(self):
+        c_ID = self.request.get('con_id')
+        _con = Contention.get_by_id(int(c_ID))
+        branch_name = self.request.get('branch')
+        elem_type = self.request.get('etype')
+        parent_type = self.request.get('ptype')
+        content = self.request.get('content')
+        step=int(self.request.get('step'))+1
+        e = Elements(contention_key=_con, gframe=step)
+        if parent_type == "con":
+            e.top_level=1
+        else:
+            e.parent_id = int(self.request.get('pid'))
+        e.content = content
+        e.branch_name = branch_name
+        e.element_type=elem_type
+        e.parent_t=parent_type
+        if self.logged_in:
+            logging.info('Checking currently logged in user')
+            logging.info(self.current_user.name)
+            sessiony = self.auth.get_user_by_session()
+            e.author = self.current_user.name
+            e.author_id = sessiony['user_id']
+        e.put()
+        _con.g_frames=step
+        _con.put()
+                
 class TreeJsonHandler(BaseRequestHandler):
     def treeh(self,parents,childs):
         od={}
@@ -979,12 +999,12 @@ class DynamicHandler(BaseRequestHandler):
                 'gols':gols
                 }
         return self.render('dynamic.html', params)
-		
-class Tester(BaseRequestHandler):		
+        
+class Tester(BaseRequestHandler):       
     def get(self):
-        params = {}	
+        params = {} 
         return self.render('test.html', params)
-		
+        
     def post(self):
         field_storage = self.request.POST["file"]
         try:
@@ -993,3 +1013,8 @@ class Tester(BaseRequestHandler):
             self.response.write(self.request.POST)
         except:
             self.response.write("No FieldStorage object, field_storage={}".format(field_storage))    
+            
+class TestMob(BaseRequestHandler):
+    def get(self):
+        """Handles mobile testing page"""
+        return self.render('mobtest.html')

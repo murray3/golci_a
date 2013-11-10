@@ -43,7 +43,8 @@ routes = [
   Route('/menu', handler='handlers.HomeMenuHandler', name='menu'),
   Route('/branch', handler='handlers.BranchHandler', name='branch'),
   Route('/contention', handler='handlers.ContentHandler', name='contention'),
-  Route('/reccon', handler='handlers.RecursiveContentHandler', name='reccon'),
+  Route('/conv', handler='handlers.ContentViewHandler', name='conv'),
+  Route('/reccon', handler='handlers.ContentViewHandler', name='reccon'),
   Route('/dynamic', handler='handlers.DynamicHandler', name='dynamic'),
   Route('/add', handler='handlers.SimpleArgHandler', name='add'),
   Route('/textmatch', handler='knol_handlers.textmatch', name='textmatch'),
@@ -52,6 +53,7 @@ routes = [
   Route('/argu2', handler='handlers.Argu2', name='argu2'),
   Route('/argu', handler='handlers.SimpleArgHandler', name='argu'),
   Route('/xyz101', handler='handlers._101', name='101'),
+  Route('/testmob', handler='handlers.TestMob', name='testmob'),
   Route('/t', handler='handlers.Tester', name='t'),
   Route('/delete/', handler='handlers.DeleteKindHandler', name='delete')
 ]

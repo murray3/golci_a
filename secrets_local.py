@@ -8,16 +8,16 @@ __website__ = 'www.golci.com'
 SESSION_KEY = "9545a8p41gskab7wx6j84h9bx1wxo71j12789047z0889zlld"
 
 # Google APIs - golci.com
-GOOGLE_APP_ID = '758539385801-crubtlthpgpbthgob60ok368pns0mjfo.apps.googleusercontent.com'
-GOOGLE_APP_SECRET = 'TyAHqLjRgaz3L9_j5JuCfAR5'
+#GOOGLE_APP_ID = '758539385801-crubtlthpgpbthgob60ok368pns0mjfo.apps.googleusercontent.com'
+#GOOGLE_APP_SECRET = 'TyAHqLjRgaz3L9_j5JuCfAR5'
 
 # Google APIs - appspot.com
 #GOOGLE_APP_ID = '758539385801-g9gim29g84bpp8f6if3jcr3jnjeg2ind.apps.googleusercontent.com'
 #GOOGLE_APP_SECRET = 'naOI2BWEl4uj3EXscP7rqmGm'
 
 # Google APIs localhost:8000
-#GOOGLE_APP_ID = '758539385801-eghqa7ps04ljp86uu7j921vfcfk967oo.apps.googleusercontent.com'
-#GOOGLE_APP_SECRET = 'gqDsv2BRUAlI488-2CwqX_Le'
+GOOGLE_APP_ID = '758539385801-eghqa7ps04ljp86uu7j921vfcfk967oo.apps.googleusercontent.com'
+GOOGLE_APP_SECRET = 'gqDsv2BRUAlI488-2CwqX_Le'
 
 # Facebook auth apis
 FACEBOOK_APP_ID = 'app id'

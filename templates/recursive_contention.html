@@ -43,7 +43,7 @@
 				<li data-role="list-divider">Contention: <span class="ui-li-count">Total Nodes: {{ccount}}</span></li>
 				<li>
 					<a href=#>
-						<img src="/image?type=con&entity_id={{ con.key().id()}}" style="width:100%; height:100%"/>
+						<img src="/image?type=con&entity_id={{ con.image_id }}" style="width:100%; height:100%"/>
 						{% if con.author %}
 						<p><strong>{{ con.author }} Posted on {{con.date}}:</strong></p>
 						{% else %}
@@ -63,7 +63,7 @@
 				{%- for k in gols recursive -%}   				
 				<li>
 					<a href=#>
-						<img src="/image?type=elem&entity_id={{ k }}" style="width:100%; height:100%"/>
+						<img src="/image?type=elem&entity_id={{ gols[k]['image_id'] }}" style="width:100%; height:100%"/>
 						{% if gols[k]['author'] %}
 							<p><strong>{{ gols[k]['author'] }} Posted on {{ gols[k]['date'] }}:</strong></p>
 						{% else %}

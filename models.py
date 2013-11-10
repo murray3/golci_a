@@ -67,6 +67,7 @@ class Golci(db.Model):
 class Contention(db.Model):
     # Basic info.
     author = db.StringProperty()
+    author_img = db.StringProperty()
     author_id = db.IntegerProperty()
    # author_golci = db.ReferenceProperty(User,
    #                            collection_name='golci')
@@ -76,13 +77,13 @@ class Contention(db.Model):
                                collection_name='contentions')
     branch_name = db.StringProperty()
     draft = db.BooleanProperty(default=True)
-    g_frames = db.IntegerProperty()
+    g_frames = db.IntegerProperty(default=1)
     text = db.StringProperty()
     description = db.StringProperty()
     step_count = db.IntegerProperty()
     #tags = db.StringListProperty()
     #blob = blobstore.BlobReferenceProperty(required=True)
-    image_id = db.StringProperty()
+    image_id = db.IntegerProperty()
     image = db.BlobProperty()
 
     
@@ -112,13 +113,16 @@ class Elements(db.Model):
     element_type = db.StringProperty(
         choices=('contention', 'reason', 'objection', 'rebuttal', 'support'))
     author = db.StringProperty()
+    author_img = db.StringProperty()
     author_id = db.IntegerProperty()
     branch_name = db.StringProperty()
     content = db.StringProperty(multiline=True)
-    description = db.StringProperty()
+    rabbit_rule_text = db.StringProperty() 
+    holdhands_rule_text = db.StringProperty()
     date = db.DateTimeProperty(auto_now_add=True)
     parent_id = db.IntegerProperty()
-    image_id = db.StringProperty()
+    parent_t = db.StringProperty()
+    image_id = db.IntegerProperty()
     image = db.BlobProperty()
     image_1 = db.StringProperty()
     image_blob_1 = db.BlobProperty()
