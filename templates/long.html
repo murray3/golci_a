@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>golci</title>
+	<link rel="shortcut icon" href="/mobile/favicon.ico">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,700">
+	<link rel="stylesheet" href="/mobile/jquery.mobile-1.4.0-rc.1.min.css">
+	<link rel="stylesheet" href="/mobile/jqm-demos.css">
+	<link rel="stylesheet" href="/mobile/jquery.mobile.datepicker.css">
+	<script src="/mobile/jquery.js"></script>
+    <script src="/mobile/jquery.mobile-1.4.0-rc.1.min.js"></script>
+	<script src="/mobile/jquery-ui-1.10.3.custom.min.js"></script>
+	<script src="/mobile/jquery.ui.datepicker.js"></script>
+	<script src="/mobile/jquery.mobile.datepicker.js"></script>	
+	<script src="/mobile/jquery.tinysort.min.js"></script>
+	<script src="/mobile/jquery.jqmts.js"></script>
+	<script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.exp&sensor=false&language=en&libraries=places"> </script>
+
+<script src="/js/libs/jquery.highlight.js"></script>
+<script type="text/javascript">
+/* jQuery editable Copyright Dylan Verheul <dylan@dyve.net>
+ * Licensed like jQuery, see http://docs.jquery.com/License
+ */
+//alert("test editavble");
+$.fn.editable = function(url, options) {
+	// Options
+	options = arrayMerge({
+		"url": url,
+		"paramName": "q",
+		"callback": null,
+		"saving": "saving ...",
+		"type": "textarea",
+		"submitButton": 0,
+		"delayOnBlur": 0,
+		"extraParams": {},
+		"editClass": null
+	}, options);
+	// Set up
+	this.click(function(e) {
+			if (this.editing) return;
+			if (!this.editable) this.editable = function() {
+				var me = this;
+                var myid = $(this).attr('id');
+				me.editing = true;
+				me.orgHTML = $(me).html();
+                me.orgHTML = me.orgHTML.replace(/<(?:.|\n)*?>/gm, '');
+                var exTXT = me.orgHTML
+				me.innerHTML = "";
+				if (options.editClass) $(me).addClass(options.editClass);
+				var f = document.createElement("form");
+				var i = createInputElement(me.orgHTML);
+				var t = 0;
+				f.appendChild(i);
+				if (options.submitButton) {
+					var b = document.createElement("input");
+					b.type = "submit";
+					b.value = "OK";
+					f.appendChild(b);
+				}
+				me.appendChild(f);
+				i.focus();
+				$(i).blur(
+						options.delayOnBlur ? function() { t = setTimeout(reset, options.delayOnBlur) } : reset
+					)
+					.keydown(function(e) {
+						if (e.keyCode == 27) { // ESC
+							e.preventDefault;
+							reset
+						}
+					});
+				$(f).submit(function(e) {
+					if (t) clearTimeout(t);
+					e.preventDefault();
+					var p = {};
+					p[i.name] = $(i).val();
+					$(me).html(options.saving).load(options.url, arrayMerge(options.extraParams, p), function() {
+						// Remove script tags
+						me.innerHTML = me.innerHTML.replace(/<\s*script\s*.*>.*<\/\s*script\s*.*>/gi, "");
+						// Callback if necessary
+						if (options.callback) options.callback(me); 
+						// Release
+						me.editing = false;						
+					});
+				});
+				function reset() {
+		
+        // me.innerHTML = me.orgHTML; edited by cjm
+                    me.innerHTML = $(i).val();
+                    var rc = $.rc;
+                    var oc = $.oc;
+                    var vals = {};
+                    if (myid == "content_0") {
+                        if ($(i).val() != "") {
+                            vals[0] = me.innerHTML.replace(/<\s*script\s*.*>.*<\/\s*script\s*.*>/gi, "");
+                        } else {
+                            vals[0] = " ";
+                            }
+                    } else {
+                    var con_0 = document.getElementById("content_0");
+                    vals[0] = con_0.innerHTML.replace(/<\s*script\s*.*>.*<\/\s*script\s*.*>/gi, "");
+                    }
+                    for (var ii=1;ii<=rc;ii++) {
+                        var reasonvar = "reason_" + ii;
+                        vals[ii] = document.getElementById(reasonvar);
+                        if (vals[ii].innerHTML != "") {
+                            vals[ii] = vals[ii].innerHTML;
+                        } else {
+                            vals[ii] = " ";
+                        }
+                        }
+                    for (var ii=1;ii<=oc;ii++) {
+                        var objectvar = "objection_" + ii;
+                        vals[ii+10] = document.getElementById(objectvar);
+                        if (vals[ii+10].innerHTML != "") {
+                            vals[ii+10] = vals[ii+10].innerHTML;
+                        } else {
+                            vals[ii+10] = " ";
+                        }        
+                        }
+                    //}
+                        
+                    // var valu1 = document.getElementById('reason_li_0');
+                    // if (valu1.innerHTML != "") {
+                        // valu1 = valu1.innerHTML;
+                        // }else{
+                        // valu1 = " ";
+                        // }
+                    // var valu2 = document.getElementById('reason_li_1');
+                    // if (valu2.innerHTML != "") {
+                        // valu2 = valu2.innerHTML;
+                        // }else{
+                        // valu2 = " ";
+                        // }
+                    // var valu3 = document.getElementById('reason_li_2');
+                    // if (valu3.innerHTML != "") {
+                        // valu3 = valu3.innerHTML;
+                        // }else{
+                        // valu3 = " ";
+                        // }
+                    // var rc = $.rc;
+                    // for (var ii=1;ii<=rc;ii++)
+                        // { 
+                        // var myidd = 'reason_' + ii;
+                        // alert(myid + " " + myidd)
+                        // if (myid == myidd) { 
+                            // valu[ii] = $(i).val();
+                        // }
+                        // }
+                    //alert(valu[1] + valu[2] + valu[3]);
+					if (options.editClass) $(me).removeClass(options.editClass);
+					me.editing = false;
+                    if ($(i).val() != exTXT) {
+					    //if (myid.indexOf("reason") !== -1) {
+					    //   var rval= parseInt($("#_reasons").val());
+						//   rval = rval+1;
+						//   $("#_reasons").val(rval);
+						//} else if (myid.indexOf("objection") !== -1) {
+						//   var oval= parseInt($("#_objections").val());
+						//   oval = oval+1;
+						//   $("#_objections").val(oval);
+						//}
+					    var contxt = $(i).val();
+		                $("#form_"+myid).val(contxt);
+						//alert(contxt);
+						//alert($("#form_"+myid).val());
+                        // for (var ii=0;ii<=rc;ii++)
+                        // { 
+                        // valu[ii] = valu[ii].replace(/ /g,"_"); 
+                        // }
+                        //valu1 = valu1.replace(/ /g,"_"); 
+                        //valu2 = valu2.replace(/ /g,"_");
+                        //valu3 = valu3.replace(/ /g,"_");
+                        var tgl = $.tgl
+                        var path='/textmatch?con='+vals[0]+'&r1='+vals[1]+'&r2='+vals[2]+'&r3='+vals[3]+'&r4='+vals[4]+'&r5='+vals[5]+'&r6='+vals[6]+'&r7='+vals[7]+'&r8='+vals[8]+'&r9='+vals[9]+'&r10='+vals[10]+'&o1='+vals[11]+'&o2='+vals[12]+'&o3='+vals[13]+'&o4='+vals[14]+'&o5='+vals[15]+'&o6='+vals[16]+'&o7='+vals[17]+'&o8='+vals[18]+'&o9='+vals[19]+'&o10='+vals[20]+'&tgl='+tgl;  
+                        $.getJSON(path,
+                           function(data){window.iargu_globals.textbag_1 = data.tb1, window.iargu_globals.textbag_2 = data.tb2, window.iargu_globals.textbag_3 = data.tb3, $.tgl = 1 });
+                           
+                    }
+				}
+			};
+			this.editable();	
+            //var valu=$('.edit_inline').innerHTML;           
+            //var path='/init/default/test3/'+valu;                
+            //$.getJSON(path,
+            //function(data){ $('.edit_inline').highlight(data)});
+		});
+	// Don't break the chain
+	return this;
+	// Helper functions
+	function arrayMerge(a, b) {
+		if (a) {
+			if (b) for(var i in b) a[i] = b[i];
+			return a;
+		} else {
+			return b;		
+		}
+	};
+	function createInputElement(v) {
+		if (options.type == "textarea") {
+			var i = document.createElement("textarea");
+			options.submitButton = false;
+			options.delayOnBlur = 100; // delay onBlur so we can click the button
+		} else {
+			var i = document.createElement("input");
+			i.type = "text";
+		}
+		$(i).val(v);
+		i.name = options.paramName;
+		return i;
+	}
+};
+</script>
+<script>
+//$(document).ready(function() {
+$(".edit_inline").editable();
+$.ac=1;
+$.rc=2;
+$.ptype="";
+$.etype="";
+$.pid="";
+$.content="";
+$.con="{{ c_id }}";
+$.branch="{{ con.branch_name }}";
+$.step="{{ con.g_frames }}";
+$.upload_url=""
+$.oc=0;
+//$.ocli='#reason_li_2';
+$.ar="0";
+$.tgl=0;
+$.togl=0;
+$.node="c0";
+$.lat=0.0;
+$.lng=0.0;
+$.place="";
+$.date_text="";
+window.iargu_globals = { 
+    textbag_1 : ['tb1','tb1'], 
+    textbag_2 : ['tb2','tb2'],
+    textbag_3 : ['tb3','tb3'],
+}; 
+$("#_reasons").val(2);
+$("#_objections").val(0);
+//alert("go");
+
+//});
+</script>
+<script>
+var map;
+function initialize() {
+  var mapOptions = {
+    zoom: 16,
+    center: new google.maps.LatLng($.lat, $.lng)
+  };
+  map = new google.maps.Map(document.getElementById('map_canvas'),
+      mapOptions);
+}
+google.maps.event.addDomListener(window, 'load', initialize);
+
+$(function() {
+$("#datepicker").datepicker({
+changeMonth: true,
+changeYear: true
+});
+});
+$(document).on("pageinit", function() {
+	$.current_page = "page_contention";
+	$(".panel_links_class").click(function() {
+		var old_page = "#" + $.current_page;
+		$.current_page = $(this).attr('data-pageid');
+		var the_page_id = "";
+		the_page_id = "#" + $.current_page;
+		$(old_page).toggleClass('article article_hide');
+		$(the_page_id).toggleClass('article_hide article');
+		$("#panel_close").click();
+	});
+	var nextId = 1;
+	$("#content_0").click(function() {
+	$(".edit_inline").editable();
+	});
+	$("#add").click(function() {
+		nextId++;
+		var content = "<div data-role='collapsible' id='set" + nextId + "'><h3>Section " + nextId + "</h3><p>I am the collapsible content in a set so this feels like an accordion. I am hidden by default because I have the 'collapsed' state; you need to expand the header to see me.</p></div>";
+
+		$("#set").append( content ).collapsibleset('refresh');
+	});
+
+	$("#expand").click(function() {
+	$("#set").children(":last").trigger( "expand" );				
+	$("#set21").children(":last").trigger( "expand" );
+	});
+
+	$("#collapse").click(function() {
+		$("#set").children(":last").trigger( "collapse" );
+	});
+	
+	$(".popup_edit").click(function() {
+		$.togl=1
+		console.log('raw pytype is: ' + $.ptype);
+		console.log('raw eytype is: ' + $.etype);
+		$.ptype = $(this).attr('data-ptype');
+		$.etype = $(this).attr('data-etype');
+		$.pid = $(this).attr('data-pid');
+		console.log('updated pytype is: ' + $.ptype);
+		console.log('updated eytype is: ' + $.etype);
+		$.mobile.changePage("#golci_txt");			
+	   // $("#popup_edit").popup( "open","option", "corners", false );				
+	});			
+	$("#post_button").click(function() {
+		if ($.togl==1) {
+            ss = $('#sscore_slider').val();
+			$.content = $('#gtext').val();
+			var formData = {con_id:$.con,step:$.step,branch:$.branch,etype:$.etype,ptype:$.ptype,pid:$.pid,ss:ss,content:$.content}; // Form Array
+			$.ajax({
+			url : "/cv",
+			type: "POST",
+			data : formData,
+			success: function(data, textStatus, jqXHR)
+			{
+			console.log(textStatus);
+			var nextId = "4";
+			var new_ele = "<div data-role='collapsible' data-inset='false' id='set'" + nextId + "'><h4>Reason: " + $.content + "</h4><div class='fildiv'><p><strong>By: </strong>auth <strong>| On:</strong> today</p></div><p><strong>A Reason:</strong></p><p class='testi'>" + $.content + "</p><img src='https://lh5.googleusercontent.com/-4vB9CX86rx4/AAAAAAAAAAI/AAAAAAAAAAA/Y601mtA2414/photo.jpg' height='42' width='42'><img src='/image?type=con&entity_id={{con.image_id}}'  height='42' width='42'><div class='votediv'><p><strong>Votes:</strong> 100 <strong>| Agree:</strong> 49<strong> | Disagree:</strong> 51<strong> | Ari's:</strong> 2</p></div><div data-role='controlgroup' class='buttondiv' data-type='horizontal' data-mini='true' data-corners='false'><a href='#popup_0' data-rel='popup' data-position-to='#header' data-transition='pop' data-role='button' data-eletype='Reason' data-ptype=" + $.ptype + " data-pid=" + $.pid + ">R</a><a href='#popup_0' data-rel='popup' data-position-to='#header' data-transition='pop' data-role='button' data-eletype='Objection' data-ptype=" + $.ptype + " data-pid=" + $.pid + ">O</a> <a href='#popup_votes' data-rel='popup' data-position-to='#header' data-transition='pop' data-role='button'>V</a>	<a href='#popup_add' class='newbutton' data-rel='popup' data-position-to='#header' data-transition='pop' data-role='button'>Add</a></div></div>";
+			$("#set_1").append( new_ele ).collapsibleset().trigger('create');
+			//$("#popup_edit").popup( "close" );	//data - response from server
+			$.ptype = "";
+			$.etype = "";
+			$.pid = "";
+			$.content = "";		
+			$.step = $.step+1;		
+			$.mobile.changePage("#main-page");
+            $("#conlink").click();			
+			},
+			error: function (jqXHR, textStatus, errorThrown)
+			{
+		 
+			}
+			});
+			$.togl=0;
+		};
+		});				
+	$(".popup_add_class").click(function() {
+		$("#i_entity_id").val("");
+		$("#i_type").val("");
+		$.etype = $(this).attr('data-etype');
+		if ($.etype=="con") {
+			$.pid = $.con;	
+			$('#mapframe').attr('src', '/map?etype=con&con_id=' + $.con);					
+		} else {
+			$.pid = $(this).attr('data-pid');
+			$('#mapframe').attr('src', '/map?etype=elem&con_id=' + $.con + '&elem_id=' + $.pid);
+			$('#mapframe')[0].contentWindow.location.reload(true);
+		};
+		$("#i_entity_id").val($.pid);
+		$("#i_type").val($.etype);
+		$("#con_id").val($.con);
+		$("#popup_add").popup( "open","option", "corners", false );		
+			});	
+			
+	$("#add_image_button").click(function() {
+		$.ajax({
+			url: '/generate_upload_url',
+			async: false,
+			success: function(data) {
+			//$.upload_url = data;
+			$("#image_form").attr("action", data);
+			$("#image_form").submit();
+			},
+			});	
+		});
+			
+	$(".map_button_class").click(function() {
+		$.lat = +($(this).attr('data-lat'));
+		$.lng = +($(this).attr('data-lon'));
+		$.place = $(this).attr('data-place');
+		$("#map_header").text($.place);
+		initialize();
+		$("#mapview").popup( "open","option", "corners", false );
+	});			
+			
+	$(".popup_votes_class").click(function() {
+		$("#popup_votes").popup( "open","option", "corners", false );				        
+			});		
+	$(".date_select_class").click(function() {
+		if ($("#date_select_day").val() != "") {
+			var day_text = $("#date_select_day").val() + ", ";
+		} else {
+			var day_text = "";
+		};
+		if ($("#date_select_date").val() != "") {
+			var day_of_month_text = $("#date_select_date").val() + ", ";
+		} else {
+			var day_of_month_text = "";
+		};	
+		if ($("#date_select_month").val() != "") {
+			var month_text = $("#date_select_month").val() + ", ";
+		} else {
+			var month_text = "";
+		};				
+		var mill_text = $("#date_select_millennium").val();
+		var cent_text = $("#date_select_century").val();
+		var decade_text = $("#date_select_decade").val();
+		var year_text = $("#date_select_year").val();
+		$.date_text = day_text + day_of_month_text + month_text + mill_text+cent_text+decade_text+year_text;
+		$("#date_header").text($.date_text);
+	});	
+	
+$("#post_date_button").click(function() {    
+var formDataPost = {etype:$.etype,con_id:$.con,elem_id:$.pid,date:$.date_text}; // Form Array
+$.ajax({
+url : "/pd",
+type: "POST",
+data : formDataPost,
+success: function(data, textStatus, jqXHR)
+{
+console.log(textStatus);
+},
+error: function (jqXHR, textStatus, errorThrown)
+{
+console.log(textStatus);	 
+}
+});
+$("#cancel_button").trigger( "click" );
+});
+});
+</script>
+
+<style>
+		/* Adjust the width of the left reveal menu. */
+		div.ui-collapsible-heading-toggle {
+			padding-left: 8px;
+		}
+		div.ui-collapsible-content {
+			padding-left: 8px;
+		}
+		#main-page #left-panel.ui-panel {
+			width: 15em;
+		}
+		#main-page #left-panel.ui-panel-closed {
+			width: 0;
+		}
+		#main-page .ui-panel-page-content-position-left,
+		.ui-panel-dismiss-open.ui-panel-dismiss-position-left {
+			left: 15em;
+			right: -15em;
+		}
+		#main-page .ui-panel-animate.ui-panel-page-content-position-left.ui-panel-page-content-display-reveal {
+			left: 0;
+			right: 0;
+			-webkit-transform: translate3d(15em,0,0);
+			-moz-transform: translate3d(15em,0,0);
+			transform: translate3d(15em,0,0);
+		}
+
+		/* Listview with collapsible list items. */
+		.panel_nested_links {
+		  width: 99%;
+		  padding: 0;
+		  float: right;
+		  margin: 0;
+		}
+		.panel_links_class_container {
+		  padding: 0 0 0 1em;
+		}
+	    .ui-listview > li .ui-collapsible-heading {
+	      margin: 0;
+	    }
+	    .ui-collapsible.ui-li-static {
+	      padding: 0;
+	      border: none !important;
+	    }
+	    .ui-collapsible + .ui-collapsible > .ui-collapsible-heading > .ui-btn {
+	      border-top: none !important;
+	    }
+	    .ui-listview > li small {
+			display: block;
+			font-size: 75%;
+	    }
+
+
+		/* Reveal panel shadow on top of the listview menu (only to be used if you don't use fixed toolbars) */
+		#main-page .ui-panel-display-reveal {
+			-webkit-box-shadow: none;
+			-moz-box-shadow: none;
+			box-shadow: none;
+		}
+		#main-page .ui-panel-page-content-position-left {
+			-webkit-box-shadow: -5px 0px 5px rgba(0,0,0,.15);
+			-moz-box-shadow: -5px 0px 5px rgba(0,0,0,.15);
+			box-shadow: -5px 0px 5px rgba(0,0,0,.15);
+		}
+
+		/* Setting a custom background image. */
+		#main-page.ui-page-theme-a,
+		#main-page .ui-panel-wrapper {
+			background-color: #fff;
+			background-image: url(../_assets/img/bg-pattern.png);
+			background-repeat: repeat-x;
+			background-position: left bottom;
+		}
+		/* Styling of the hidden page contents */
+		.article_hide {
+		display: none;
+		}
+		/* Styling of the page contents */
+		.article img (
+		    border:1px solid grey;
+		)
+		.article p {
+			margin: 0 0 1em;
+			line-height: 1.5;
+		}
+		.article p img {
+			max-width: 100%;
+		}
+		.article p:first-child {
+			text-align: center;
+		}
+		.article small {
+			display: block;
+			font-size: 75%;
+			color: #c0c0c0;
+		}
+		.article small divide {
+			color: #333333;
+		}
+		.article p:last-child {
+			text-align: right;
+		}
+		.article a.ui-btn {
+			margin-right: 0.25em;
+		}
+		@media all and (min-width:769px) {
+			.article {
+				max-width: 994px;
+				margin: 0 auto;
+				padding-top: 1em;
+				-webkit-column-count: 1;
+				-moz-column-count: 1;
+				column-count: 1;
+				-webkit-column-gap: 2em;
+				-moz-column-gap: 2em;
+				column-gap: 2em;
+			}
+			/* Fix for issue with buttons and form elements
+			if CSS columns are used on a page with a panel. */
+			.article a.ui-btn {
+				-webkit-transform: translate3d(0,0,0);
+			}
+		}
+	/* Basic settings */
+.ui-li-static.ui-collapsible {
+    padding: 0;
+}
+.ui-li-static.ui-collapsible > .ui-collapsible-content > .ui-listview,
+.ui-li-static.ui-collapsible > .ui-collapsible-heading {
+    margin: 0;
+}
+.ui-li-static.ui-collapsible > .ui-collapsible-content {
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-right: 0;
+    border-bottom-width: 0;
+}
+/* collapse vertical borders */
+.ui-li-static.ui-collapsible > .ui-collapsible-content > .ui-listview > li.ui-last-child,
+.ui-li-static.ui-collapsible.ui-collapsible-collapsed > .ui-collapsible-heading > a.ui-btn {
+    border-bottom-width: 0;
+}
+.ui-li-static.ui-collapsible > .ui-collapsible-content > .ui-listview > li.ui-first-child,
+.ui-li-static.ui-collapsible > .ui-collapsible-content > .ui-listview > li.ui-first-child > a.ui-btn,
+.ui-li-static.ui-collapsible > .ui-collapsible-heading > a.ui-btn {
+    border-top-width: 0;
+}
+/* Remove right borders */
+.ui-li-static.ui-collapsible > .ui-collapsible-heading > a.ui-btn,
+.ui-li-static.ui-collapsible > .ui-collapsible-content > .ui-listview > .ui-li-static,
+.ui-li-static.ui-collapsible > .ui-collapsible-content > .ui-listview > li > a.ui-btn,
+.ui-li-static.ui-collapsible > .ui-collapsible-content {
+    border-right-width: 0;
+}
+/* Remove left borders */
+/* Here, we need class ui-listview-outer to identify the outermost listview */
+.ui-listview-outer > .ui-li-static.ui-collapsible .ui-li-static.ui-collapsible.ui-collapsible,
+.ui-listview-outer > .ui-li-static.ui-collapsible > .ui-collapsible-heading > a.ui-btn,
+.ui-li-static.ui-collapsible > .ui-collapsible-content {
+    border-left-width: 0;
+}
+	</style>
+</head>
+<body>
+<div data-role="page" id="main-page" class="jqm-demos">
+
+<div data-role="header">
+        <h1>Golci</h1>
+        <a href="#left-panel" data-icon="comment" data-iconpos="notext" data-shadow="false" data-iconshadow="false">gol</a><a href="#menu-panel" data-icon="bars"  data-iconpos="notext" data-shadow="false"class="ui-btn-right">Menu</a>
+    </div><!-- /header -->
+
+    <div role="main" class="ui-content">
+        
+				<h2>Golci</h2>
+
+				<ul data-role="listview" data-inset="false" id="sortlist">
+					<li data-sort-elem="11" data-sort-datey="140509">
+					<a href="#demo-page">
+					<img src="src/album-bb.jpg">
+					<p><strong>Objection 1</strong></p>
+					<p>objection 1</p><span class="ui-li-count">11</span></a>
+					</li>
+					<li data-sort-elem="12" data-sort-datey="140511">
+					<a href="#">
+					<img src="src/album-hc.jpg">
+					<p><strong>Reason 1</strong></p>
+					<p>reason 1</p><span class="ui-li-count">12</span></a>
+					</li>
+					<li data-sort-elem="13" data-sort-datey="140512">
+					<a href="#">
+					<img src="src/album-p.jpg">
+					<p><strong>Reason 2</strong></p>
+					<p>reason 2</p><span class="ui-li-count">13</span></a>
+					</li>
+					<li data-sort-elem="111" data-sort-datey="140510">
+					<a href="#">
+					<img src="src/album-bb.jpg">
+					<p><strong>Sub Reason 1</strong></p>
+					<p>sub reason 1</p><span class="ui-li-count">111</span></a>
+					</li>
+					<li data-sort-elem="112" data-sort-datey="140510">
+					<a href="#">
+					<img src="src/album-p.jpg">
+					<p><strong>Sub Reason 2</strong></p>
+					<p>sub reason 2</p><span class="ui-li-count">112</span></a>
+					</li>
+				</ul>
+
+			</div>
+		</div>
+        <div data-url="demo-page" data-role="page" id="demo-page" data-title="Cars">
+    <div data-role="header" data-theme="b">
+        <a href="#demo-intro" data-rel="back" data-icon="arrow-l" data-iconpos="notext" data-shadow="false" data-icon-shadow="false">Back</a>
+        <h1>Cars</h1>
+    </div><!-- /header -->
+    <div role="main" class="ui-content">
+        <ul data-role="listview">
+            <li><a href="#" class="cars" id="bmw"><img src="src/bmw-thumb.jpg" alt="BMW"><h2>BMW</h2><p>5 series</p></a></li>
+            <li><a href="#" class="cars" id="landrover"><img src="src/landrover-thumb.jpg" alt="Land Rover"><h2>Land Rover</h2><p>Discovery 4</p></a></li>
+            <li><a href="#" class="cars" id="tesla"><img src="src/tesla-thumb.jpg" alt="Tesla"><h2>Tesla</h2><p>Model S</p></a></li>
+        </ul>
+    </div><!-- /content -->
+</div>
+		<script>
+			$(function(){
+				$('#sortlist').jqmts({
+					useNativeMenu: true,
+					showCounts: true,
+					attributes: {elem: 'Sort by element', datey: 'Sort by date'}
+				});
+			});
+		</script>
+
+	</body>
+</html>

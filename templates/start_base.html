@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Panel - jQuery Mobile Demos</title>
+	<link rel="shortcut icon" href="/mobile/favicon.ico">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,700">
+	<link rel="stylesheet" href="/mobile/jquery.mobile-1.4.0-rc.1.min.css">
+	<link rel="stylesheet" href="/mobile/jqm-demos.css">
+	<link rel="stylesheet" href="/mobile/jquery.mobile.datepicker.css">
+	<script src="/mobile/jquery.js"></script>
+    <script src="/mobile/jquery.mobile-1.4.0-rc.1.min.js"></script>
+	<script src="/mobile/jquery-ui-1.10.3.custom.min.js"></script>
+
+<style>
+		/* Adjust the width of the left reveal menu. */
+		div.ui-collapsible-heading-toggle {
+			padding-left: 8px;
+		}
+		div.ui-collapsible-content {
+			padding-left: 8px;
+		}
+		#main-page #left-panel.ui-panel {
+			width: 15em;
+		}
+		#main-page #left-panel.ui-panel-closed {
+			width: 0;
+		}
+		#main-page .ui-panel-page-content-position-left,
+		.ui-panel-dismiss-open.ui-panel-dismiss-position-left {
+			left: 15em;
+			right: -15em;
+		}
+		#main-page .ui-panel-animate.ui-panel-page-content-position-left.ui-panel-page-content-display-reveal {
+			left: 0;
+			right: 0;
+			-webkit-transform: translate3d(15em,0,0);
+			-moz-transform: translate3d(15em,0,0);
+			transform: translate3d(15em,0,0);
+		}
+
+		/* Listview with collapsible list items. */
+		.panel_nested_links {
+		  width: 99%;
+		  padding: 0;
+		  float: right;
+		  margin: 0;
+		}
+		.panel_links_class_container {
+		  padding: 0 0 0 1em;
+		}
+	    .ui-listview > li .ui-collapsible-heading {
+	      margin: 0;
+	    }
+	    .ui-collapsible.ui-li-static {
+	      padding: 0;
+	      border: none !important;
+	    }
+	    .ui-collapsible + .ui-collapsible > .ui-collapsible-heading > .ui-btn {
+	      border-top: none !important;
+	    }
+	    .ui-listview > li small {
+			display: block;
+			font-size: 75%;
+	    }
+
+
+		/* Reveal panel shadow on top of the listview menu (only to be used if you don't use fixed toolbars) */
+		#main-page .ui-panel-display-reveal {
+			-webkit-box-shadow: none;
+			-moz-box-shadow: none;
+			box-shadow: none;
+		}
+		#main-page .ui-panel-page-content-position-left {
+			-webkit-box-shadow: -5px 0px 5px rgba(0,0,0,.15);
+			-moz-box-shadow: -5px 0px 5px rgba(0,0,0,.15);
+			box-shadow: -5px 0px 5px rgba(0,0,0,.15);
+		}
+
+		/* Setting a custom background image. */
+		#main-page.ui-page-theme-a,
+		#main-page .ui-panel-wrapper {
+			background-color: #fff;
+			background-image: url(../_assets/img/bg-pattern.png);
+			background-repeat: repeat-x;
+			background-position: left bottom;
+		}
+		/* Styling of the hidden page contents */
+		.article_hide {
+		display: none;
+		}
+		/* Styling of the page contents */
+		.article img (
+		    border:1px solid grey;
+		)
+		.article p {
+			margin: 0 0 1em;
+			line-height: 1.5;
+		}
+		.article p img {
+			max-width: 100%;
+		}
+		.article p:first-child {
+			text-align: center;
+		}
+		.article small {
+			display: block;
+			font-size: 75%;
+			color: #c0c0c0;
+		}
+		.article small divide {
+			color: #333333;
+		}
+		.article p:last-child {
+			text-align: right;
+		}
+		.article a.ui-btn {
+			margin-right: 0.25em;
+		}
+		@media all and (min-width:769px) {
+			.article {
+				max-width: 994px;
+				margin: 0 auto;
+				padding-top: 1em;
+				-webkit-column-count: 1;
+				-moz-column-count: 1;
+				column-count: 1;
+				-webkit-column-gap: 2em;
+				-moz-column-gap: 2em;
+				column-gap: 2em;
+			}
+			/* Fix for issue with buttons and form elements
+			if CSS columns are used on a page with a panel. */
+			.article a.ui-btn {
+				-webkit-transform: translate3d(0,0,0);
+			}
+		}
+	/* Basic settings */
+.ui-li-static.ui-collapsible {
+    padding: 0;
+}
+.ui-li-static.ui-collapsible > .ui-collapsible-content > .ui-listview,
+.ui-li-static.ui-collapsible > .ui-collapsible-heading {
+    margin: 0;
+}
+.ui-li-static.ui-collapsible > .ui-collapsible-content {
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-right: 0;
+    border-bottom-width: 0;
+}
+/* collapse vertical borders */
+.ui-li-static.ui-collapsible > .ui-collapsible-content > .ui-listview > li.ui-last-child,
+.ui-li-static.ui-collapsible.ui-collapsible-collapsed > .ui-collapsible-heading > a.ui-btn {
+    border-bottom-width: 0;
+}
+.ui-li-static.ui-collapsible > .ui-collapsible-content > .ui-listview > li.ui-first-child,
+.ui-li-static.ui-collapsible > .ui-collapsible-content > .ui-listview > li.ui-first-child > a.ui-btn,
+.ui-li-static.ui-collapsible > .ui-collapsible-heading > a.ui-btn {
+    border-top-width: 0;
+}
+/* Remove right borders */
+.ui-li-static.ui-collapsible > .ui-collapsible-heading > a.ui-btn,
+.ui-li-static.ui-collapsible > .ui-collapsible-content > .ui-listview > .ui-li-static,
+.ui-li-static.ui-collapsible > .ui-collapsible-content > .ui-listview > li > a.ui-btn,
+.ui-li-static.ui-collapsible > .ui-collapsible-content {
+    border-right-width: 0;
+}
+/* Remove left borders */
+/* Here, we need class ui-listview-outer to identify the outermost listview */
+.ui-listview-outer > .ui-li-static.ui-collapsible .ui-li-static.ui-collapsible.ui-collapsible,
+.ui-listview-outer > .ui-li-static.ui-collapsible > .ui-collapsible-heading > a.ui-btn,
+.ui-li-static.ui-collapsible > .ui-collapsible-content {
+    border-left-width: 0;
+}
+	</style>
+</head>
+<body>
+<div data-role="page" id="main-page" class="jqm-demos">
+
+<div data-role="header">
+        <h1>Golci</h1>
+        <a href="#left-panel" data-icon="comment" data-iconpos="notext" data-shadow="false" data-iconshadow="false">gol</a><a href="#menu-panel" data-icon="bars"  data-iconpos="notext" data-shadow="false"class="ui-btn-right">Menu</a>
+    </div><!-- /header -->
+
+
+	
+	    <div data-role="panel" id="menu-panel" data-display="overlay" data-position="right">
+
+        <ul data-role="listview">
+			<li data-icon="delete"><a href="#" data-rel="close">Close</a></li>
+        	<li data-role="list-divider">Menu</li>
+			{% if logged_in %}
+        	<li data-icon="alert"><a href="/logout" data-ajax="false">Logout</a></li>
+		    {% else %}
+        	<li data-icon="lock"><a href="/login" data-ajax="false" >Login</a></li>
+			{%- endif %}
+            <li data-icon="home"><a href="/" data-ajax="false">Home</a></li>	
+			<li data-icon="user"><a href="/profile" data-ajax="false">My golci</a></li>
+			<li data-icon="comment"><a href="/add?edit=0" data-ajax="false">Post new golci</a></li>
+			{% for b in branches %}
+				<li data-icon="search"><span class='ui-li-count'>Total number: 1 </span>
+					<a href="/branch?branch={{b.key.id()}}&branch_name={{ b.branch }}" data-ajax="false">{{ b.branch }}</a>
+				</li>
+			{% endfor %}
+		</ul>
+
+    </div><!-- /menu-panel -->
+
+
+	
+
+
+</div><!-- /page -->
+</body>
+</html>

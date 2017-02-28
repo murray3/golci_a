@@ -13,12 +13,87 @@
 
     <!-- Mobile viewport optimized: h5bp.com/viewport -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <link rel="stylesheet"  href="/css/mobile/style.css" />
-    <link rel="stylesheet"  href="/css/mobile/main.css" />
-    <link rel="stylesheet"  href="/mobile/jquery.mobile-1.3.0.css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,700">
+	<link rel="stylesheet" href="/mobile/jquery.mobile-1.4.0-rc.1.min.css">
+	<link rel="stylesheet" href="/mobile/jqm-demos.css"> 
     <link rel="stylesheet"  href="/mobile/golci.css" />
-    <link type="text/css" href="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.css" rel="stylesheet" />
+	<link rel="stylesheet" href="/mobile/jquery.mobile.datepicker.css">
+
+   <style>
+		/* Adjust the width of the left reveal menu. */
+		div.ui-collapsible-heading-toggle {
+			padding-left: 8px;
+		}
+		div.ui-collapsible-content {
+			padding-left: 8px;
+		}
+		#main-page #left-panel.ui-panel {
+			width: 15em;
+		}
+		#main-page #left-panel.ui-panel-closed {
+			width: 0;
+		}
+		#main-page .ui-panel-page-content-position-left,
+		.ui-panel-dismiss-open.ui-panel-dismiss-position-left {
+			left: 15em;
+			right: -15em;
+		}
+		#main-page .ui-panel-animate.ui-panel-page-content-position-left.ui-panel-page-content-display-reveal {
+			left: 0;
+			right: 0;
+			-webkit-transform: translate3d(15em,0,0);
+			-moz-transform: translate3d(15em,0,0);
+			transform: translate3d(15em,0,0);
+		}
+
+		/* Listview with collapsible list items. */
+		.panel_nested_links {
+		  width: 99%;
+		  padding: 0;
+		  float: right;
+		  margin: 0;
+		}
+		.panel_links_class_container {
+		  padding: 0 0 0 1em;
+		}
+	    .ui-listview > li .ui-collapsible-heading {
+	      margin: 0;
+	    }
+	    .ui-collapsible.ui-li-static {
+	      padding: 0;
+	      border: none !important;
+	    }
+	    .ui-collapsible + .ui-collapsible > .ui-collapsible-heading > .ui-btn {
+	      border-top: none !important;
+	    }
+
+
+
+		/* Reveal panel shadow on top of the listview menu (only to be used if you don't use fixed toolbars) */
+		#main-page .ui-panel-display-reveal {
+			-webkit-box-shadow: none;
+			-moz-box-shadow: none;
+			box-shadow: none;
+		}
+		#main-page .ui-panel-page-content-position-left {
+			-webkit-box-shadow: -5px 0px 5px rgba(0,0,0,.15);
+			-moz-box-shadow: -5px 0px 5px rgba(0,0,0,.15);
+			box-shadow: -5px 0px 5px rgba(0,0,0,.15);
+		}
+
+		/* Setting a custom background image. */
+		#main-page.ui-page-theme-a,
+		#main-page .ui-panel-wrapper {
+			background-color: #fff;
+			background-image: url(../_assets/img/bg-pattern.png);
+			background-repeat: repeat-x;
+			background-position: left bottom;
+		}
+
+	</style>
+	<script src="/mobile/jquery.js"></script>
+    <script src="/mobile/jquery.mobile-1.4.0-rc.1.min.js"></script>
+	<script src="/mobile/jquery-ui-1.10.3.custom.min.js"></script>
 
     {% block mediaCSS %}{% endblock %}
     {% block mediaJSTOP %}{% endblock %}
@@ -32,18 +107,38 @@
            chromium.org/developers/how-tos/chrome-frame-getting-started -->
     <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
 
-    <div data-role="page"  data-theme="c" id="mob_page">
-    {% block header %}
-    <div data-role="header" id="header" data-position="fixed">
-        <h1>golci</h1><a href="/login">Login</a><a style="color:red;"href="/menu" data-icon="gear" class="ui-btn-right">Menu</a>
+<div data-role="page" id="main-page" class="jqm-demos">
+
+<div data-role="header">
+        <h1>Golci</h1>
+        <a href="/login" data-shadow="false" data-iconshadow="false">login</a><a href="#menu-panel" data-icon="bars"  data-iconpos="notext" data-shadow="false"class="ui-btn-right">Menu</a>
     </div><!-- /header -->
-    {% endblock %}
-    <div> {% block swipe %}{% endblock %}    </div>
-        <div data-role="content">
-            <p class="messages {{ level }}">{{ messages }}</p>
+
+    <div> {% block swipe %}{% endblock %} </div>
+        <div data-role="content" >
             {% block content %}{% endblock %}
         </div><!-- /content -->
           {% block footer %}{% endblock %}
+   	    <div data-role="panel" id="menu-panel" data-display="overlay" data-position="right">
+        <ul data-role="listview">
+			<li data-icon="delete"><a href="#" data-rel="close">Close</a></li>
+        	<li data-role="list-divider">Menu</li>
+			{% if logged_in %}
+        	<li data-icon="alert"><a href="/logout" data-ajax="false">Logout</a></li>
+		    {% else %}
+        	<li data-icon="lock"><a href="/login" data-ajax="false" >Login</a></li>
+			{%- endif %}
+            <li data-icon="home"><a href="/" data-ajax="false">Home</a></li>	
+			<li data-icon="user"><a href="/profile" data-ajax="false">My golci</a></li>
+			<li data-icon="comment"><a href="/add?edit=0" data-ajax="false">Post new golci</a></li>
+			{% for b in branches %}
+				<li data-icon="search"><span class='ui-li-count'>Total number: 1 </span>
+					<a href="/branch?branch={{b.key.id()}}&branch_name={{ b.branch }}" data-ajax="false">{{ b.branch }}</a>
+				</li>
+			{% endfor %}
+		</ul>
+
+    </div><!-- /menu-panel -->
     </div><!-- /page -->
     
             {% block content2 %}{% endblock %}
@@ -51,9 +146,6 @@
     <!-- JavaScript at the bottom for fast page loading -->
 
     <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <script>window.jQuery || document.write('<script src="/js/libs/jquery-1.9.1.js"><\/script>')</script>
-    <script src="/mobile/jquery.mobile-1.3.0.js"></script>
     <script type="text/javascript" src="http://dev.jtsage.com/jquery.mousewheel.min.js"></script>
 	<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.js"></script>
     <script src="/js/libs/jquery-ui-1.10.2.custom.min.js"></script>

@@ -1155,6 +1155,26 @@ div.status_bar {
     float: right;
 }
 
-a.nav_button {
-    
+img.rule_icons { 
+   border:1px solid #021a40;
+   margin:  0.1em 0.1em; 
+}
+
+div.gallery_popup {
+    width: 320px;
+}
+
+div.golci_content h5{
+    color: #333333;
+    font-family: periodico-text-1,periodico-text-2,helvetica,arial,sans-serif;
+    font-weight: normal !
+}
+div.golci_content_type h5{
+color: #333333;
+display: block;
+font-family: calibre-1,calibre-2,helvetica,arial,sans-serif;
+font-size: 12px;
+font-weight: 600;
+margin: 0;
+text-transform: uppercase;
 }

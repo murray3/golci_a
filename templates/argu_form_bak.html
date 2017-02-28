@@ -1,0 +1,686 @@
+{% extends "alt_base.html" %}
+{% block header %}
+    <h1>simple arg</h1>
+{% endblock %}
+{% block mediaCSS %}
+<link rel="stylesheet" href="?/css/jquery.ui.datepicker.mobile.css" />
+<style rel="stylesheet">
+    .highlight {
+    background-color: #FFFF88;
+    }
+    .highlight2 {
+    background-color: #EDDF9B;
+    }
+    .highlight3 {
+    background-color: #FFB900;
+    }
+div.edit_inline {
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
+    border-radius: 15px 15px 15px 15px;
+    margin: 10px;
+    padding: 3px;
+
+    min-height:90px;
+    font: lighter 13pt/17pt Helvetica,Arial,sans-serif; 
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) inset;
+    display: inline-block;
+    width: 93%;
+    -moz-transition: height 200ms linear 0s;
+    text-shadow: 0;
+    font-size: 16px;
+    line-height: 1.4;
+    padding: 0.4em;
+}
+ textarea { 
+    width: 100%;
+    min-height: 85px;
+    border-style: none; 
+    border-color: Transparent; 
+    overflow: auto;  
+    font: normal 12pt/14pt Serif;    
+  }
+
+
+</style>
+{% endblock %}
+{% block mediaJSTOP %}
+   <!-- JavaScript at the bottom for fast page loading -->
+
+    <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="/js/libs/jquery-1.9.1.js"><\/script>')</script>
+    <script src="/mobile/jquery.mobile-1.3.0.js"></script>
+    <script type="text/javascript" src="http://dev.jtsage.com/jquery.mousewheel.min.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/cdn/datebox/latest/jquery.mobile.datebox.min.js"></script>
+    <script src="?//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script>
+    <script>window.jQuery || document.write('?/js/libs/jquery-ui-1.10.2.custom.min.js')</script>
+    <!-- scripts concatenated and minified via build script -->
+    <script src="/js/plugins.js"></script>
+    <script src="/js/script.js"></script>
+    <script src="/js/libs/jquery.tinycarousel.js"></script>
+    <script type="text/javascript">
+    //$(document).live("mobileinit", function(){
+    //$.mobile.allowCrossDomainPages = true;
+    //});
+    </script>
+<script src="/js/jQuery.ui.datepicker.js"></script>
+<script src="/js/jquery.ui.datepicker.mobile.js"></script>
+<script src="js/libs/jquery.fileupload.js"></script>
+<script>
+
+
+</script>
+<script src="/js/libs/jquery.highlight.js"></script>
+<script type="text/javascript">
+/* jQuery editable Copyright Dylan Verheul <dylan@dyve.net>
+ * Licensed like jQuery, see http://docs.jquery.com/License
+ */
+//alert("test editavble");
+$.fn.editable = function(url, options) {
+	// Options
+	options = arrayMerge({
+		"url": url,
+		"paramName": "q",
+		"callback": null,
+		"saving": "saving ...",
+		"type": "textarea",
+		"submitButton": 0,
+		"delayOnBlur": 0,
+		"extraParams": {},
+		"editClass": null
+	}, options);
+	// Set up
+	this.click(function(e) {
+			if (this.editing) return;
+			if (!this.editable) this.editable = function() {
+				var me = this;
+                var myid = $(this).attr('id');
+				me.editing = true;
+				me.orgHTML = $(me).html();
+                me.orgHTML = me.orgHTML.replace(/<(?:.|\n)*?>/gm, '');
+                var exTXT = me.orgHTML
+				me.innerHTML = "";
+				if (options.editClass) $(me).addClass(options.editClass);
+				var f = document.createElement("form");
+				var i = createInputElement(me.orgHTML);
+				var t = 0;
+				f.appendChild(i);
+				if (options.submitButton) {
+					var b = document.createElement("input");
+					b.type = "submit";
+					b.value = "OK";
+					f.appendChild(b);
+				}
+				me.appendChild(f);
+				i.focus();
+				$(i).blur(
+						options.delayOnBlur ? function() { t = setTimeout(reset, options.delayOnBlur) } : reset
+					)
+					.keydown(function(e) {
+						if (e.keyCode == 27) { // ESC
+							e.preventDefault;
+							reset
+						}
+					});
+				$(f).submit(function(e) {
+					if (t) clearTimeout(t);
+					e.preventDefault();
+					var p = {};
+					p[i.name] = $(i).val();
+					$(me).html(options.saving).load(options.url, arrayMerge(options.extraParams, p), function() {
+						// Remove script tags
+						me.innerHTML = me.innerHTML.replace(/<\s*script\s*.*>.*<\/\s*script\s*.*>/gi, "");
+						// Callback if necessary
+						if (options.callback) options.callback(me); 
+						// Release
+						me.editing = false;						
+					});
+				});
+				function reset() {
+		
+        // me.innerHTML = me.orgHTML; edited by cjm
+                    me.innerHTML = $(i).val();
+                    var rc = $.rc;
+                    var oc = $.oc;
+                    var vals = {};
+                    if (myid == "content_0") {
+                        if ($(i).val() != "") {
+                            vals[0] = me.innerHTML.replace(/<\s*script\s*.*>.*<\/\s*script\s*.*>/gi, "");
+                        } else {
+                            vals[0] = " ";
+                            }
+                    } else {
+                    var con_0 = document.getElementById("content_0");
+                    vals[0] = con_0.innerHTML.replace(/<\s*script\s*.*>.*<\/\s*script\s*.*>/gi, "");
+                    }
+                    for (var ii=1;ii<=rc;ii++) {
+                        var reasonvar = "reason_" + ii;
+                        vals[ii] = document.getElementById(reasonvar);
+                        if (vals[ii].innerHTML != "") {
+                            vals[ii] = vals[ii].innerHTML;
+                        } else {
+                            vals[ii] = " ";
+                        }
+                        }
+                    for (var ii=1;ii<=oc;ii++) {
+                        var objectvar = "objection_" + ii;
+                        vals[ii+10] = document.getElementById(objectvar);
+                        if (vals[ii+10].innerHTML != "") {
+                            vals[ii+10] = vals[ii+10].innerHTML;
+                        } else {
+                            vals[ii+10] = " ";
+                        }        
+                        }
+                    //}
+                        
+                    // var valu1 = document.getElementById('reason_li_0');
+                    // if (valu1.innerHTML != "") {
+                        // valu1 = valu1.innerHTML;
+                        // }else{
+                        // valu1 = " ";
+                        // }
+                    // var valu2 = document.getElementById('reason_li_1');
+                    // if (valu2.innerHTML != "") {
+                        // valu2 = valu2.innerHTML;
+                        // }else{
+                        // valu2 = " ";
+                        // }
+                    // var valu3 = document.getElementById('reason_li_2');
+                    // if (valu3.innerHTML != "") {
+                        // valu3 = valu3.innerHTML;
+                        // }else{
+                        // valu3 = " ";
+                        // }
+                    // var rc = $.rc;
+                    // for (var ii=1;ii<=rc;ii++)
+                        // { 
+                        // var myidd = 'reason_' + ii;
+                        // alert(myid + " " + myidd)
+                        // if (myid == myidd) { 
+                            // valu[ii] = $(i).val();
+                        // }
+                        // }
+                    //alert(valu[1] + valu[2] + valu[3]);
+					if (options.editClass) $(me).removeClass(options.editClass);
+					me.editing = false;
+                    if ($(i).val() != exTXT) {
+					    //if (myid.indexOf("reason") !== -1) {
+					    //   var rval= parseInt($("#_reasons").val());
+						//   rval = rval+1;
+						//   $("#_reasons").val(rval);
+						//} else if (myid.indexOf("objection") !== -1) {
+						//   var oval= parseInt($("#_objections").val());
+						//   oval = oval+1;
+						//   $("#_objections").val(oval);
+						//}
+					    var contxt = $(i).val();
+		                $("#form_"+myid).val(contxt);
+						//alert(contxt);
+						//alert($("#form_"+myid).val());
+                        // for (var ii=0;ii<=rc;ii++)
+                        // { 
+                        // valu[ii] = valu[ii].replace(/ /g,"_"); 
+                        // }
+                        //valu1 = valu1.replace(/ /g,"_"); 
+                        //valu2 = valu2.replace(/ /g,"_");
+                        //valu3 = valu3.replace(/ /g,"_");
+                        var tgl = $.tgl
+                        var path='/textmatch?con='+vals[0]+'&r1='+vals[1]+'&r2='+vals[2]+'&r3='+vals[3]+'&r4='+vals[4]+'&r5='+vals[5]+'&r6='+vals[6]+'&r7='+vals[7]+'&r8='+vals[8]+'&r9='+vals[9]+'&r10='+vals[10]+'&o1='+vals[11]+'&o2='+vals[12]+'&o3='+vals[13]+'&o4='+vals[14]+'&o5='+vals[15]+'&o6='+vals[16]+'&o7='+vals[17]+'&o8='+vals[18]+'&o9='+vals[19]+'&o10='+vals[20]+'&tgl='+tgl;  
+                        $.getJSON(path,
+                           function(data){window.iargu_globals.textbag_1 = data.tb1, window.iargu_globals.textbag_2 = data.tb2, window.iargu_globals.textbag_3 = data.tb3, $.tgl = 1 });
+                           
+                    }
+				}
+			};
+			this.editable();	
+            //var valu=$('.edit_inline').innerHTML;           
+            //var path='/init/default/test3/'+valu;                
+            //$.getJSON(path,
+            //function(data){ $('.edit_inline').highlight(data)});
+		});
+	// Don't break the chain
+	return this;
+	// Helper functions
+	function arrayMerge(a, b) {
+		if (a) {
+			if (b) for(var i in b) a[i] = b[i];
+			return a;
+		} else {
+			return b;		
+		}
+	};
+	function createInputElement(v) {
+		if (options.type == "textarea") {
+			var i = document.createElement("textarea");
+			options.submitButton = false;
+			options.delayOnBlur = 100; // delay onBlur so we can click the button
+		} else {
+			var i = document.createElement("input");
+			i.type = "text";
+		}
+		$(i).val(v);
+		i.name = options.paramName;
+		return i;
+	}
+};
+</script>
+<script type="text/javascript">
+// window.iargu_globals = { 
+    // textbag_1 : ['tb1','tb1'], 
+    // textbag_2 : ['tb2','tb2'],
+    // textbag_3 : ['tb3','tb3'],
+// }; 
+$(document).ready(function() {
+$(".edit_inline").editable();
+$.ac=1;
+$.rc=2;
+$.rcli='#reason_li_2';
+$.oc=0;
+//$.ocli='#reason_li_2';
+$.ar="0";
+$.tgl=0;
+$.node="c0";
+window.iargu_globals = { 
+    textbag_1 : ['tb1','tb1'], 
+    textbag_2 : ['tb2','tb2'],
+    textbag_3 : ['tb3','tb3'],
+}; 
+$("#_reasons").val(2);
+$("#_objections").val(0);
+//alert("go");
+
+});
+
+$(document).on("click tap", "a[id^='add_btn']", function() {
+    $.node = $(this).attr('id').substring(8);
+	//$("#i_entity_id").val('contention');
+	//if ($(this).attr('id').substring(8,9) == "c") {
+	//$("#i_type").val('contention');
+	$.mobile.changePage('#add_page', {transition: 'pop', role: 'dialog'});   
+    });
+</script>
+
+<script type="text/javascript">
+//$("#submit_golci").click(function() {
+//alert("clicked");
+//var text1 = $('#content').val();
+//var path='/postgolci?text1='+text1;
+//$.getJSON(path,
+//    function(data){
+//    $("#dynalist").prepend('<li><h3>'+data.author+' wrote:</h3><p>'+data.content+'</p></li>');
+//    $("#dynalist").listview("refresh");
+//    });
+//});
+
+// $.ac=1;
+// $.rc=0;
+// $.rcli='#content_li';
+// $.oc=0;
+// $.ocli='#content_li';
+// $.ar="0";
+//$( document ).delegate("#mob_page", "pageinit", function() {
+   // $('li[id*="reason_li"]').hide();
+   // var i=0;
+   // while (i<=$.rc)
+   // {
+   // $('#reason_li_' + $.rc).show();
+   // i++;
+   // }
+   // $("#form_list").listview("refresh");
+//});
+$(document).on("change", "#picture_url_0", function() {
+  //this.files[0].size gets the size of your file.
+   // var filesize = 1048576;
+    if (this.files[0].size > 1048576) {
+		var pic_0 = $("#picture_url_0");
+		pic_0.replaceWith( pic_0 = pic_0.val('').clone( true ) );
+		setTimeout(function() {
+			alert("Sorry during this alpha test, max image size is 1mb!");
+			}, 0);
+    };
+});
+    
+$(document).on("click", "#add_reason", function() {
+    if ($.rc >= 5) { 
+        alert("max 5 reasons submitted")
+    } else {
+	    var rval= parseInt($("#_reasons").val());
+		rval = rval+1;
+		$("#_reasons").val(rval);	    
+        $.rc = $.rc+1; // increment the reason counter (rc) for the new reason elements - note count starts at 2 !! //
+        var rc_ui = $.rc+1; //this gets existing number of reasons and adds one for the ui text 
+        //var r1li = '<li class="ui-body ui-body-c" id="reason_li_' + $.rc + '"><label for="branch_name">Reason ' + $.rc + ':</label><div id="reason_' + $.rc + '"name="reason_' + $.rc + '" class="edit_inline"></div><div><a id="add_btn_r' + $.rc + ' "href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to R' + $.rc + '</a></div></li>'
+        //$(r1li).insertAfter($.rcli);    
+        //$(".edit_inline").editable();
+		//$("#add_btn_r3").button("refresh");
+        //$(r1li).li("refresh");
+		var rcli='#reason_li_' + $.rc;
+		$(rcli).show();
+		$(rcli).li("refresh");
+        $("#form_list").listview("refresh");
+    }
+    });
+    
+$(document).on("click", "#add_objection", function() {
+    if ($.oc >= 5) { 
+        alert("max 5 objections submitted")
+    } else {
+        //if ($.rc > 2) {
+        //    $.ocli='#reason_li_' + $.rc;
+        //}
+        //if ($.oc > 0) { 
+        //    $.ocli='#objection_li_' + $.oc;
+        //} 
+		var oval= parseInt($("#_objections").val());
+		oval = oval+1;
+		$("#_objections").val(oval);
+        $.oc = $.oc+1; // increment the reason counter (rc) for the new reason elements - note count starts at 2 !! //
+        //var rc_ui = $.rc+1; //this gets existing number of reasons and adds one for the ui text 
+        //var o1li = '<li class="ui-body ui-body-c" id="objection_li_' + $.oc + '"><label for="branch_name">Objection ' + $.oc + ':</label><div id="objection_' + $.oc + '"name="objection_' + $.oc + '" class="edit_inline"></div><div><a id="add_btn_o' + $.node + ' "href="#"  data-mini="true" data-rel="dialog" data-role="button" data-icon="plus" data-transition="flip" data-iconpos="middle" data-theme="d">Add Images etc to O' + $.node + '</a></div></li>'
+        //$(o1li).insertAfter($.ocli);    
+        //$(".edit_inline").editable();
+		var ocli = '#objection_li_' + $.oc;
+		$(ocli).show();		
+		$(ocli).li("refresh");
+        //$('a[id*="add_btn"]').button("refresh");
+        $("#form_list").listview("refresh");
+    }
+    });
+
+$(document).on("click", "#pic_button", function() {
+    var pic = $("#pic_input").val();
+    if ($("#image_name").val() == "image0") {
+	    //$("#image_description_0").val(pic);
+		$("#picture_url_0").trigger('click');
+	} else if ($("#image_name").val() == "image1") {
+		$("#picture_url_1").val(pic);
+	} else if ($("#image_name").val() == "image2") {
+		$("#picture_url_2").val(pic);
+	} else if ($("#image_name").val() == "image3") {
+		$("#picture_url_3").val(pic);
+	} else if ($("#image_name").val() == "image4") {
+		$("#picture_url_4").val(pic);
+	} else if ($("#image_name").val() == "image5") {
+		$("#picture_url_5").val(pic);
+	} else if ($("#image_name").val() == "image6") {
+		$("#picture_url_6").val(pic);
+	} else if ($("#image_name").val() == "image7") {
+		$("#picture_url_7").val(pic);
+	} else if ($("#image_name").val() == "image8") {
+		$("#picture_url_8").val(pic);
+	} else if ($("#image_name").val() == "image9") {
+		$("#picture_url_9").val(pic);
+	} else if ($("#image_name").val() == "image10") {
+		$("#picture_url_10").val(pic);
+	}else if ($("#image_name").val() == "imageall") {
+	    for (var ii=0;ii<=10;ii++) {
+		    $("#picture_url_"+ii.toString() ).val(pic);
+		}
+	}
+	//alert(pic);
+    });
+
+
+	
+$(document).on("click tap", "#checkrules", function() {
+    //alert("test");
+    var rc = $.rc;
+    var varid ="";
+    //$("#contention").highlight($.iargu_namespace.textbag_1);
+    for (var ii=0;ii<=rc;ii++)
+       { 
+       //varid = id='#reason_' + ii;
+       var vv= ii+1
+       var tbagvar = "textbag_" + vv;
+       var tbag = window.iargu_globals[tbagvar];
+       $('#reason_' + vv).highlight(tbag); 
+       //for (var iii=0;iii<=rc;iii++)
+       //    tbagg = 'textbag_' + iii;
+       //    $(varid).highlight($.iargu_namespace[iii], {className: 'highlight2'});
+       }
+    //$("#editme1").highlight($.iargu_namespace.textbag_1);
+    //$("#editme2").highlight($.iargu_namespace.textbag_1);
+    //$("#editme3").highlight($.iargu_namespace.textbag_1);
+    //$("#editme2").highlight($.iargu_namespace.textbag_3, {className: 'highlight2'});
+    //$("#editme3").highlight($.iargu_namespace.textbag_2, {className: 'highlight2'});
+    });
+//$("#submit_golci").click(function() {
+//var text1 = document.getElementById('editme1');
+//var text2 = document.getElementById('editme2');
+//var text3 = document.getElementById('editme3');
+//                    if (text1.innerHTML != "") | (text2.innerHTML != "") (text3.innerHTML != "") {
+//                        text1 = text1.innerHTML;
+//                        }else{
+//                        alert("text1 = " & text1 & "text2 = " text2 & "text3 = " text3);
+//                        }
+//var path='/init/default/sim_arg_update?type='+type+'&p2='+text1+'&p3='+valu3+'&p4='+tgl;
+//$.getJSON(path,
+//    function(data){$.iargu_namespace.textbag_1 = data.tb1, $.iargu_namespace.textbag_2 = data.tb2, //$.iargu_namespace.textbag_3 = data.tb3, $.tgl = 1 });
+//});
+</script>
+{% endblock %}
+{% block content %}
+    <form method="POST" enctype="multipart/form-data" data-ajax="false">
+    	<ul id="form_list" data-role="listview" data-dividertheme="c">
+        <li>
+        <label for="branch_name" class="select">Select Topic:</label>
+        <select name="branch_name" id="branch_name">
+            {% for b in branches %}
+            <option value="{{b.branch}}">{{b.branch}}</option>
+            {% endfor %}   
+        </select>
+		</li>
+        <li class="ui-body ui-body-c" id="content_li">
+          <label for="branch_name">Contention:</label>
+		  <div id="content_0" name="content_0" class="edit_inline">
+            {% if p_type == "contention"  %}						
+             {{ con.content }}
+			{% else %}
+			{{ elem.content }}
+			{% endif %} 
+           </div>
+          <div><a id="add_btn_c0" href="#"  data-mini="true" data-role="button"  data-theme="d">Add Images etc</a></div>	
+		</li>
+        <li data-role="ui-body ui-body-c" id="reason_li_1">
+            <label for="branch_name">Reason 1:</label>
+            <div id="reason_1" name="reason_1" class="edit_inline">
+			{% if reasons['reason1'] %}{{ reasons['reason1']['content'] }}{% endif %}  
+			</div>
+          <div><a id="add_btn_r1" href="#"  data-mini="true" data-rel="dialog" data-role="button"  data-transition="flip"  data-theme="d">Add Images etc to R1</a></div>	
+		</li>
+        <li data-role="ui-body ui-body-c" id="reason_li_2">
+            <label for="branch_name">Reason 2:</label>
+            <div id="reason_2" name="reason_2" class="edit_inline">
+			{% if reasons['reason2'] %}{{ reasons['reason2']['content'] }}{% endif %}  
+			</div>
+          <div><a id="add_btn_r2" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-transition="flip"  data-theme="d">Add Images etc to R2</a></div>	
+		</li>   
+        <li data-role="ui-body ui-body-c" id="reason_li_3" 
+		{% if not reasons['reason3'] %}style="display:none"{% endif %} >
+            <label for="branch_name">Reason 3:</label>
+            <div id="reason_3" name="reason_3" class="edit_inline">
+			{% if reasons['reason3'] %}{{ reasons['reason3']['content'] }}{% endif %}  
+			</div>
+          <div><a id="add_btn_r3" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-transition="flip"  data-theme="d">Add Images etc to R3</a></div>	
+		</li>  	  
+        <li data-role="ui-body ui-body-c" id="reason_li_4" 
+		{% if not reasons['reason4'] %}style="display:none"{% endif %} >
+            <label for="branch_name">Reason 4:</label>
+            <div id="reason_4" name="reason_4" class="edit_inline">
+			{% if reasons['reason4'] %}{{ reasons['reason4']['content'] }}{% endif %}  
+			</div>
+          <div><a id="add_btn_r4" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-transition="flip" data-theme="d">Add Images etc to R4</a></div>	
+		</li>  
+        <li data-role="ui-body ui-body-c" id="reason_li_5" 
+		{% if not reasons['reason5'] %}style="display:none"{% endif %} >
+            <label for="branch_name">Reason 5:</label>
+            <div id="reason_5" name="reason_5" class="edit_inline">
+			{% if reasons['reason5'] %}{{ reasons['reason5']['content'] }}{% endif %}  
+			</div>
+          <div><a id="add_btn_r5" href="#"  data-mini="true" data-rel="dialog" data-role="button"  data-transition="flip"  data-theme="d">Add Images etc to R5</a></div>	
+		</li>	
+        <li data-role="ui-body ui-body-c" id="objection_li_1" 
+		{% if not objections['objection1'] %}style="display:none"{% endif %} >
+            <label for="branch_name">Objection 1:</label>
+            <div id="objection_1" name="objection_1" class="edit_inline">
+			{% if objections['objection1'] %}{{ objections['objection1']['content'] }}{% endif %}  
+			</div>
+          <div><a id="add_btn_o1" href="#"  data-mini="true" data-rel="dialog" data-role="button"  data-transition="flip" " data-theme="d">Add Images etc to O1</a></div>	
+		</li>
+        <li data-role="ui-body ui-body-c" id="objection_li_2" 
+		{% if not objections['objection2'] %}style="display:none"{% endif %} >
+            <label for="branch_name">Objection 2:</label>
+            <div id="objection_2" name="objection_2" class="edit_inline">
+			{% if objections['objection2'] %}{{ objections['objection2']['content'] }}{% endif %}  
+			</div>
+          <div><a id="add_btn_o2" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-transition="flip"  data-theme="d">Add Images etc to O2</a></div>	
+		</li>   
+        <li data-role="ui-body ui-body-c" id="objection_li_3" 
+		{% if not objections['objection3'] %}style="display:none"{% endif %} >
+            <label for="branch_name">Objection 3:</label>
+            <div id="objection_3" name="objection_3" class="edit_inline">
+			{% if objections['objection3'] %}{{ objections['objection3']['content'] }}{% endif %}  
+			</div>
+          <div><a id="add_btn_o3" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-transition="flip"  data-theme="d">Add Images etc to O3</a></div>	
+		</li>  	  
+        <li data-role="ui-body ui-body-c" id="objection_li_4" 
+		{% if not objections['objection4'] %}style="display:none"{% endif %} >
+            <label for="branch_name">Objection 4:</label>
+            <div id="objection_4" name="objection_4" class="edit_inline">
+			{% if objections['objection4'] %}{{ objections['objection4']['content'] }}{% endif %}  
+			</div>
+          <div><a id="add_btn_o4" href="#"  data-mini="true" data-rel="dialog" data-role="button"  data-transition="flip"  data-theme="d">Add Images etc to O4</a></div>	
+		</li>  
+        <li data-role="ui-body ui-body-c" id="objection_li_5" 
+		{% if not objections['objection5'] %}style="display:none"{% endif %} >
+            <label for="branch_name">Objection 5:</label>
+            <div id="objection_5" name="objection_5" class="edit_inline">
+			{% if objections['objection5'] %}{{ objections['objection5']['content'] }}{% endif %}  
+			</div>
+          <div><a id="add_btn_o5" href="#"  data-mini="true" data-rel="dialog" data-role="button" data-transition="flip"  data-theme="d">Add Images etc to O5</a></div>	
+		</li>	
+    	<li class="ui-body ui-body-c">
+          <fieldset class="ui-grid-a">
+			<div class="ui-block-a"><a id="add_reason" href="#" data-role="button" data-mini="true" data-icon="plus" data-theme="d">Reason</a></div>
+			<div class="ui-block-b"><a id="add_objection" href="#" data-role="button" data-mini="true"  data-icon="minus" data-theme="d">Object</a></div>
+          </fieldset>
+        </li>
+		<li class="ui-body ui-body-c">
+	       <div><a id="checkrules" href="#"  data-mini="true" data-role="button" data-icon="plus" data-theme="d">Check Validity?</a></div>
+		</li>
+        <li class="ui-body ui-body-a">
+           <input type="submit" value="Post golci">
+        </li>
+        </ul>
+		<div style="display:none">    		
+		<input type="hidden" id="e_type" name="e_type" value="{{ edit }}">
+		<input type="hidden" id="p_type" name="p_type" value="{{ p_type }}">
+        <input type="hidden" id="_reasons" name="_reasons" value="">
+        <input type="hidden" id="_objections" name="_objections" value="">
+        <input type="file" id="picture_url_0" name="picture_url_0" >
+        <input type="hidden" id="image_description_0" name="image_description_0" value="">
+        <input type="hidden" id="picture_url_1" name="picture_url_1" value="">
+        <input type="hidden" id="picture_url_2" name="picture_url_2" value="">
+        <input type="hidden" id="picture_url_3" name="picture_url_3" value="">
+        <input type="hidden" id="picture_url_4" name="picture_url_4" value="">
+        <input type="hidden" id="picture_url_5" name="picture_url_5" value="">
+        <input type="hidden" id="picture_url_6" name="picture_url_6" value="">
+        <input type="hidden" id="picture_url_7" name="picture_url_7" value="">
+        <input type="hidden" id="picture_url_8" name="picture_url_8" value="">
+        <input type="hidden" id="picture_url_9" name="picture_url_9" value="">
+        <input type="hidden" id="picture_url_10" name="picture_url_10" value="">
+        <input type="hidden" id="form_content_0" name="form_content_0" value="">
+        <input type="hidden" id="form_reason_1" name="form_reason_1" value="">
+        <input type="hidden" id="form_reason_1_" name="form_reason_1_" value="
+		{% if reasons['reason1'] %}{{ reasons['reason1']['e_id'] }}{% endif %}">
+        <input type="hidden" id="form_reason_2" name="form_reason_2" value="
+		{% if reasons['reason2'] %}{{ reasons['reason2']['e_id'] }}{% endif %}">
+        <input type="hidden" id="form_reason_3" name="form_reason_3" value="
+		{% if reasons['reason3'] %}{{ reasons['reason3']['e_id'] }}{% endif %}">
+        <input type="hidden" id="form_reason_4" name="form_reason_4" value="">
+        <input type="hidden" id="form_reason_5" name="form_reason_5" value="">
+        <input type="hidden" id="form_reason_6" name="form_reason_6" value="">
+        <input type="hidden" id="form_reason_7" name="form_reason_7" value="">
+        <input type="hidden" id="form_reason_8" name="form_reason_8" value="">
+        <input type="hidden" id="form_reason_9" name="form_reason_9" value="">
+        <input type="hidden" id="form_reason_10" name="form_reason_10" value="">
+        <input type="hidden" id="form_objection_1" name="form_objection_1" value="">
+        <input type="hidden" id="form_objection_2" name="form_objection_2" value="">
+        <input type="hidden" id="form_objection_3" name="form_objection_3" value="">
+        <input type="hidden" id="form_objection_4" name="form_objection_4" value="">
+        <input type="hidden" id="form_objection_5" name="form_objection_5" value="">
+        <input type="hidden" id="form_objection_6" name="form_objection_6" value="">
+        <input type="hidden" id="form_objection_7" name="form_objection_7" value="">
+        <input type="hidden" id="form_objection_8" name="form_objection_8" value="">
+        <input type="hidden" id="form_objection_9" name="form_objection_9" value="">
+        <input type="hidden" id="form_objection_10" name="form_objection_10" value="">
+		</div>
+    </form>
+{% endblock %}
+{% block content2 %}
+    <div data-role="dialog"  id="add_page">
+    <div data-role="header" data-theme="d">
+		<h1>Add more data</h1>
+    </div>
+    <div data-role="content" data-theme="c">
+		<h3>Add additional data</h3>
+		<a href="#add_images" data-role="button" data-rel="dialog" id="pic_button" data-theme="d">Add Image</a>      
+		<a href="#" data-role="button" data-rel="dialog" data-transition="slidedown" data-theme="d">Add Location</a>      
+		<a href="#" data-role="button" data-rel="dialog" data-transition="slidedown" data-theme="d">Add Historical Date</a> 
+        <a href="#add_fallacy" data-role="button" data-rel="dialog" data-transition="pop" data-theme="d">Tag this post with an Ari.</a>        
+		<a href="add.html" data-role="button" data-rel="back" data-theme="a">back to edit-golci form</a>    
+	</div>
+</div>
+    
+<div data-role="dialog" id="add_images">
+    <div data-role="header" data-theme="d">
+    <h1>Add Images</h1>
+    </div>
+    <div data-role="content" data-theme="c">  
+    <div align="center"><img src="" alt="" width="200px" height="260px" /></div>
+		<h3>Add Images to Post: </h3>
+		<input type="hidden" id="i_entity_id" name="i_entity_id" value="">
+		<input type="hidden" id="i_type" name="i_type" value="">
+        <select name="image_name" id="image_name">
+            <option value="image0">Contention Image</option>
+			<option value="imageall">Same Image on all Nodes</option>			
+			<option value="image1">Reason 1 Image</option>
+            <option value="image2">Reason 2 Image</option>
+            <option value="image3">Reason 3 Image</option>
+            <option value="image4">Reason 4 Image</option>
+            <option value="image5">Reason 5 Image</option>
+            <option value="image6">Objection 1 Image</option>
+            <option value="image7">Objection 2 Image</option>
+            <option value="image8">Objection 3 Image</option>
+            <option value="image9">Objection 4 Image</option>
+            <option value="image10">Objection 5 Image</option>  
+        </select>
+          <label for="pic_input" >Select Image:</label>
+            <input type="text" id="pic_input" name="pic_input"></input>
+		<a href="#" data-role="button" data-rel="dialog" id="pic_button" data-theme="d">Add Image</a>  
+	</div>
+    </div><!-- /page -->
+    
+<div data-role="page" id="add_fallacy">
+    <div data-role="header" data-theme="d">
+		<h1>Tag Post with an Ari (a fallacy).</h1>
+    </div>
+    <div data-role="content" data-theme="c">
+       <div align="center"><img src="/img/ari.jpg" alt="Hi I'm Ari!" width="200px" height="260px" /></div>
+		<h3>Select Ari type: </h3>
+        <select name="fallacy_name" id="fallacy_name">
+            {% for b in aris %}
+            <option value="{{b.key.id()}}">{{b.ari}}</option>
+            {% endfor %}   
+        </select>
+          <label for="ari" >Ari:</label>
+            <textarea id="ari" name="ari" rows="3" cols="75"></textarea>            
+		<a href="#" id="add_ari_btn" name="add_ari_btn" data-role="button" data-theme="a">Add Ari</a>    
+	</div>
+</div><!-- /page -->
+{% endblock %}
+
+{% block mediaJS2 %}
+
+{% endblock %}

@@ -20,12 +20,14 @@ from jinja2 import Template
 
 from simpleauth import SimpleAuthHandler
 
+from google.appengine.api import images
+
 from models import User
 from models import Contention
 from models import Elements
 from models import Branch
 from models import Ari
-from models import Images
+#from models import Images
 from models import Ari_types
 from models import golci_link
 from models import golci_history
@@ -45,36 +47,7 @@ def prefetch_refprops(entities, *props):
     for (entity, prop), ref_key in zip(fields, ref_keys):
         prop.__set__(entity, ref_entities[ref_key])
     return entities
-    
-def clone_entity(e, skip_auto_now=False, skip_auto_now_add=False, **extra_args):
-  """Clones an entity, adding or overriding constructor attributes.
-
-  The cloned entity will have exactly the same property values as the original
-  entity, except where overridden. By default it will have no parent entity or
-  key name, unless supplied.
-
-  Args:
-    e: The entity to clone
-    skip_auto_now: If True then all DateTimeProperty propertes will be skipped which have the 'auto_now' flag set to True
-    skip_auto_now_add: If True then all DateTimeProperty propertes will be skipped which have the 'auto_now_add' flag set to True
-    extra_args: Keyword arguments to override from the cloned entity and pass
-      to the constructor.
-  Returns:
-    A cloned, possibly modified, copy of entity e.
-  """
-
-  klass = e.__class__
-  props = {}
-  for k, v in klass.properties().iteritems():
-    if not (type(v) == db.DateTimeProperty and ((skip_auto_now and getattr(v, 'auto_now')) or (skip_auto_now_add and getattr(v, 'auto_now_add')))):
-      if type(v) == db.ReferenceProperty:
-        value = getattr(klass, k).get_value_for_datastore(e)
-      else:
-        value = v.__get__(e, klass)
-      props[k] = value
-  props.update(extra_args)
-  return klass(**props)
-    
+      
 def _rec_con(parents,children):
     od={}
     for p in parents:
@@ -87,6 +60,7 @@ def _rec_con(parents,children):
         pdict['element_type']=str(p.element_type)
         pdict['description']=str(p.description)       
         pdict['date']=str(p.date)
+        pdict['image1_url']=p.image1_url # get_serving_url at this point
         pid=p.key().id()
         pdict['eid']=str(pid)
         tgl=0
@@ -132,11 +106,18 @@ def rec_con(parents,children):
             pdict['element_type']=str(p.element_type)
         else:
             pdict['element_type']="no_val_elem_type"
-        if p.image_id  is not None:                 
-            pdict['image_id']=str(p.image_id)   
+        if p.image_1_url  is not None:                 
+            pdict['image1_url']=p.image1_url
         else:
-            pdict['image_id']="no_val_imge_id"  
-        pdict['date']=str(p.date)
+            pdict['image1_url']="no_val_image_1_url"  
+        if p.latlng  is not None:                 
+            pdict['lat']=p.latlng.lat                 
+            pdict['lon']=p.latlng.lon        
+        if p.placename  is not None:                 
+            pdict['placename']=p.placename
+        pdict['date']=p.date.strftime("%a, %d. %b %y, %I:%M%p")
+        if p.other_date  is not None:                 
+            pdict['other_date']=p.other_date        
         pid=p.key().id()
         if pid is not None: 
             pdict['eid']=str(pid)
@@ -157,4 +138,123 @@ def rec_con(parents,children):
                 pdict['subnodes']=rec_con(kids,children)
         od[str(pid)]=pdict       
     return od
+            
+            # top_elems = len(str(con.tot_element_code)[1])
+            # for idx, item in enumerate(elems):
+            # if idx <= top_elems:
+                # if len(str(item.element_code)) == 2:
+                    # tlvl.append(f)
+                # else:
+                    # slvl.append(f)
+                    
+def Nest_From_LocStruct(parents,children):
+    od={}
+    for p in parents:
+        pdict={}
+        if p.element_id is not None:
+            pdict['element_id']=str(p.element_id)
+        else:
+            pdict['element_id']="no_val_parent_id"
+        if p.g_frame is not None:
+            pdict['g_frame']=str(p.g_frame)
+        else:
+            pdict['g_frame']="no_val_parent_id"
+        if p.content is not None:       
+            pdict['content']=str(p.content)
+        else:
+            pdict['content']="no_val_content"
+        if p.author is not None:            
+            pdict['author']=str(p.author)
+        else:           
+            pdict['author']="no_val_author"
+        if p.author_img is not None:            
+            pdict['author_img']=str(p.author_img)
+        else:           
+            pdict['author_img']="no_val_author"
+        if p.author_id is not None:            
+            pdict['author_id']=str(p.author_id)
+        else:           
+            pdict['author_id']="no_val_author"
+        if p.element_type is not None:      
+            pdict['element_type']=str(p.element_type)
+        else:
+            pdict['element_type']="no_val_elem_type"
+        # error handling for image moved to model class
+        pdict['image_1_url']=p.image_1_url  
+        if p.latlng  is not None:                 
+            pdict['lat']=p.latlng.lat                 
+            pdict['lon']=p.latlng.lon        
+        if p.placename  is not None:                 
+            pdict['placename']=p.placename
+        pdict['date']=p.date.strftime("%a, %d. %b %y, %I:%M%p")
+        if p.other_date  is not None:                 
+            pdict['other_date']=p.other_date        
+        tgl=0
+        for c in children:
+            logging.info("****************************************************************************")
+            logging.info("element_id=[%s]",c.parent_id)
+            logging.info("parent_id=[%s]",p.element_id)
+            logging.info("****************************************************************************")
+            if c.parent_id==p.element_id:
+                if tgl==0:
+                   kids=[]
+                   kids.append(c)
+                   tgl=1
+                   #children.remove(c)
+                else:
+                   kids.append(c)
+                   #children.remove(c)
+                pdict['subnodes']=Nest_From_LocStruct(kids,children)
+        od[str(p.element_id)]=pdict       
+    return od
     
+def element_code_update(pid,contot):
+    # creates a new element code and updates the total element code for contention / golci
+    # if len(pid) == len(contot):
+       # plen = len(pid)-1 # len() gives total num of chars - not zero indexed so need to minus 2 if strings equal
+       # code = int(contot[plen])+1
+       # # print "code= "+ str(code)
+       # #plen=plen # need to take off last line as this is going to be replaced next
+       # # print "plen= "+ str(plen)
+       # element_id = pid[:plen]+str(code) # all but last line of string is concatenated to new number
+       # # print "pid[:plen]= "+ pid[:plen]
+    # else:
+    plen = len(pid) #  get len of parent code but minus 1 as strings are zero indexed
+    clen = len(contot)
+    code_pos = plen+1 # as we will use zero indexed list below this is ok to give us child level
+    if code_pos > clen:
+        code = 1
+    else:
+        code = int(contot[plen])+1
+    logging.info("=====================" + str(code_pos) + "============" + str(clen) + "=============")
+    if code_pos > clen:
+        newid = list(pid)
+        newid.append(str(code))
+        element_id = ''.join(newid)
+    else:
+        newid = list(contot)
+        newid[plen] = str(code)
+        nnewid = newid[0:code_pos]
+        element_id = ''.join(nnewid)      
+    # first_part=pid[0:plen]  
+    # # print  first_part     
+    # if len(contot) > len(pid):
+        # plen2=plen+1
+        # last_part=pid[plen2:clen]
+    # # print last_part
+        # element_id = first_part+str(code)+last_part
+    # else:
+        # element_id = first_part+str(code)
+    newcontot = list(contot)
+    if (len(pid)+1) > clen:
+        newcontot.append(str(code))
+        newcontot = ''.join(newcontot)
+    else:
+        newcontot[plen] = str(code)
+        newcontot = ''.join(newcontot)
+       # print 'parent_id= '+pid
+       # print 'element_id= '+element_id      
+       # print 'old contot ='+contot
+       # print 'newcontot ='+newcontot
+    return {'element_id':element_id,'tot_element_code':newcontot}
+

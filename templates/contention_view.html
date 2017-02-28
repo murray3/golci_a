@@ -1,7 +1,145 @@
 {% extends "alt_base3.html" %} 
 {% block mediaJSTOP %}
+<style>
+      html, body, #map-canvas {
+        height: 100%;
+        margin: 0px;
+        padding: 0px
+      }
+      .controls {
+        margin-top: 6px;
+        border: 1px solid transparent;
+        border-radius: 2px 0 0 2px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        height: 32px;
+        outline: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      #pac-input {
+        background-color: #fff;
+        padding: 0 11px 0 13px;
+        width: 250px;
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+        text-overflow: ellipsis;
+      }
+
+      #pac-input:focus {
+        border-color: #4d90fe;
+        margin-left: -1px;
+        padding-left: 14px;  /* Regular padding-left + 1. */
+        width: 251px;
+      }
+
+      .pac-container {
+        font-family: Roboto;
+      }
+
+      #type-selector {
+        color: #fff;
+        background-color: #4d90fe;
+        padding: 5px 11px 0px 11px;
+      }
+
+      #type-selector label {
+        font-family: Roboto;
+        font-size: 13px;
+        font-weight: 300;
+      }
+}
+
+    </style>
+
 <script src="/mobile/jquery-2.0.3.js"></script>
 <script src="/mobile/jquery.mobile-1.3.2.min.js"></script>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.exp&sensor=false&language=en&libraries=places"> </script>
+<script type="text/javascript">
+
+// This example adds a search box to a map, using the Google Place Autocomplete
+// feature. People can enter geographical searches. The search box will return a
+// pick list containing a mix of places and predicted search terms.
+
+function initialize(lat,lng) {
+var latlng = new google.maps.LatLng(lat, lng);
+var myOptions = {
+zoom: 8,
+center: latlng,
+mapTypeId: google.maps.MapTypeId.ROADMAP
+   };
+var markers = [];
+var map = new google.maps.Map(document.getElementById("map_canvas"),myOptions);
+
+
+// Create the search box and link it to the UI element.
+var input = /** @type {HTMLInputElement} */(
+document.getElementById('pac-input'));
+map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+var searchBox = new google.maps.places.SearchBox(
+/** @type {HTMLInputElement} */(input));
+
+// [START region_getplaces]
+// Listen for the event fired when the user selects an item from the
+// pick list. Retrieve the matching places for that item.
+google.maps.event.addListener(searchBox, 'places_changed', function() {
+var places = searchBox.getPlaces();
+
+for (var i = 0, marker; marker = markers[i]; i++) {
+  marker.setMap(null);
+}
+
+// For each place, get the icon, place name, and location.
+markers = [];
+var bounds = new google.maps.LatLngBounds();
+for (var i = 0, place; place = places[i]; i++) {
+  var image = {
+	url: place.icon,
+	size: new google.maps.Size(71, 71),
+	origin: new google.maps.Point(0, 0),
+	anchor: new google.maps.Point(17, 34),
+	scaledSize: new google.maps.Size(25, 25)
+  };
+
+  // Create a marker for each place.
+  var marker = new google.maps.Marker({
+	map: map,
+	icon: image,
+	title: place.name,
+	position: place.geometry.location
+  });
+
+  markers.push(marker);
+
+  bounds.extend(place.geometry.location);
+}
+
+map.fitBounds(bounds);
+});
+// [END region_getplaces]
+
+// Bias the SearchBox results towards places that are within the bounds of the
+// current map's viewport.
+google.maps.event.addListener(map, 'bounds_changed', function() {
+var bounds = map.getBounds();
+searchBox.setBounds(bounds);
+});
+}
+$(document).on("pageinit", "#basic-map", function() {
+if(navigator.geolocation) {
+navigator.geolocation.getCurrentPosition(function(position){
+initialize(position.coords.latitude,position.coords.longitude);
+});
+}
+google.maps.event.addDomListener(window, 'load', initialize);
+});
+
+
+
+    </script>
+
 <script src="/js/libs/jquery.highlight.js"></script>
 <script type="text/javascript">
 /* jQuery editable Copyright Dylan Verheul <dylan@dyve.net>
@@ -208,6 +346,7 @@ $.content="";
 $.con="{{ c_id }}";
 $.branch="{{ con.branch_name }}";
 $.step="{{ con.g_frames }}";
+$.upload_url=""
 $.oc=0;
 //$.ocli='#reason_li_2';
 $.ar="0";
@@ -239,7 +378,8 @@ $("#_objections").val(0);
 			});
 
 			$("#expand").click(function() {
-	$("#set").children(":last").trigger( "expand" );				$("#set21").children(":last").trigger( "expand" );
+			$("#set").children(":last").trigger( "expand" );				
+			$("#set21").children(":last").trigger( "expand" );
 			});
 
 			$("#collapse").click(function() {
@@ -254,7 +394,7 @@ $("#_objections").val(0);
 			    $.etype = $(this).attr('data-etype');
 			    $.pid = $(this).attr('data-pid');
                 console.log('updated pytype is: ' + $.ptype);
-                //console.log('updated eytype is: ' + $.etype);
+                console.log('updated eytype is: ' + $.etype);
                 $.mobile.changePage("#golci_txt");			
                // $("#popup_edit").popup( "open","option", "corners", false );				
 			});			
@@ -287,51 +427,87 @@ $("#_objections").val(0);
 					});
 					$.togl=0;
 				};
-				});	
-				});	
+				});				
+			$(".popup_add_class").click(function() {
+				$("#i_entity_id").val("");
+				$("#i_type").val("");
+			    $.etype = $(this).attr('data-etype');
+				if ($.etype=="con") {
+			        $.pid = $.con;			
+				} else {
+			        $.pid = $(this).attr('data-pid');
+                };
+				$("#i_entity_id").val($.pid);
+				$("#i_type").val($.etype);
+				$("#con_id").val($.con);
+			    $("#popup_add").popup( "open","option", "corners", false );		
+					});	
+					
+			$("#add_image_button").click(function() {
+				$.ajax({
+					url: '/generate_upload_url',
+					async: false,
+					success: function(data) {
+					//$.upload_url = data;
+					$("#image_form").attr("action", data);
+					$("#image_form").submit();
+					},
+					});	
+	            });
+					
+					
+					
+			$(".popup_votes_class").click(function() {
+			    $("#popup_votes").popup( "open","option", "corners", false );				        
+					});						
+		});
 </script>
 
 {% endblock %}
 {% block page1 %}
- <div id="main" data-role="page" class="jqm-demos" data-quicklinks="true">
+<div id="main" data-role="page" class="jqm-demos" data-quicklinks="true">
     <div data-role="header" id="header">
 		<h1>golci</h1><a href="/login">Login</a><a style="color:red;"href="/menu" data-icon="gear" class="ui-btn-right">Menu</a>
     </div><!-- /header -->
     <div data-role="content" class="advert"> 
-    <div>
-	<div class="fildiv"><p><strong>By: </strong>{{ con.author }} <strong>| On:</strong> {{ con.date }}</p></div>
-	<p><strong class="strongwhite" >The Contention is:</strong></p>
-    <img src="https://lh5.googleusercontent.com/-4vB9CX86rx4/AAAAAAAAAAI/AAAAAAAAAAA/Y601mtA2414/photo.jpg" height="42" width="42"><img src="/image?type=con&entity_id={{con.image_id}}"  height="42" width="42">
-	<p class="testi2">{{ con.content }}</p>
+	<div class="fildiv"><p><strong>By: </strong>{{ con.author }} <strong>| On:</strong> {{ con_date }}</p></div>
+    <p><strong>Contention:</strong></p>
+	<p class="testi">{{ con.content }}</p>
+    <img src="/img/unknown_user.png" height="42" width="42">{%- if con.image1 %}<a href="#gallery_{{ c_id }}" data-rel="popup" ><img src='{{ con.image1_url }}'  height="42" width="42"></a>{%- endif %}
 	<div data-role="popup" id="id_123" class="ui-content" data-theme="d">
 		<p>I am positioned over the origin.</p>
 	</div>
+	<div data-role="popup" id="gallery_{{ c_id }}" class="gallery_popup" data-overlay-theme="a" data-theme="d" data-corners="false">
+        <a href="#" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Close</a>
+		<img class="popphoto" src="{{ con.image1_url }}" style="max-height:330px;" alt="">
+        <img class="popphoto" src="{{ con.image1_url }}" style="max-height:320px;" alt="">
+        <img class="popphoto" src="{{ con.image1_url }}" style="max-height:320px;" alt="">
+    </div>
 	<div class="votediv"><p><strong>Votes:</strong> 100 <strong>| Agree:</strong> 49<strong> | Disagree:</strong> 51<strong> | Ari's:</strong> 2</p></div>
     {% if logged_in  %} 	
 	<div data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
 		<a href="#" class="popup_edit" data-role="button" data-etype="Reason" data-ptype="con">R</a>
 		<a href="#" class="popup_edit" data-role="button" data-etype="Objection" data-ptype="con">O</a> 
-		<a href="#popup_votes" data-rel="popup" data-position-to="#header" data-transition="pop" data-role="button">V</a>	
-		<a href="#popup_add" data-rel="popup" data-position-to="#header" data-transition="pop" data-role="button">Add</a>
+		<a href="#" class="popup_votes_class" data-rel="popup" data-position-to="#header" data-transition="pop" data-role="button" data-etype="con">V</a>	
+		<a href="#" class="popup_add_class" data-rel="popup" data-position-to="#header" data-transition="pop" data-role="button" data-etype="con">Add</a>
 	</div>
 	{% else %}
 	<div data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
 		<a href="#popup_votes" data-rel="popup" data-position-to="#header" data-transition="pop" data-role="button">Vote</a>	
 	</div>
 	{% endif %}
-	</div>
 	<div data-role="collapsible-set" data-inset="false" data-content-theme="c" id="set_1">
 	    {%- for k, v in gols.items() recursive %} 
-		<div data-role="collapsible" id="set1" data-inset="false">
+		<div data-role="collapsible" id="set_{{ v.eid }}" data-inset="false">
 			{%- if v.element_type %}		   
 			<h4>{{ v.element_type }}: {{ v.content }}</h4>
 		    {% else %}
 		    <h4>No elem_type_val</h4>
 			{%- endif %}
 			<div class="fildiv"><p><strong>By: </strong>{{ v.author }} <strong>| On:</strong> {{ v.date }}</p></div>
-			<p><strong>A Reason:</strong></p>
-			<img src="https://lh5.googleusercontent.com/-4vB9CX86rx4/AAAAAAAAAAI/AAAAAAAAAAA/Y601mtA2414/photo.jpg" height="42" width="42"><img src="/image?type=con&entity_id={{con.image_id}}"  height="42" width="42">
+			<p><strong>{{ v.element_type }}:</strong></p>
 			<p class="testi">{{ v.content }}</p>
+			<img src="/img/unknown_user.png" height="42" width="42">{%- if v.image1_url %}<img src='{{ v.image1_url }}'  height="42" width="42">{%- endif %}<img src="/img/ari.png" class="rule_icons" height="22" width="22"><img src="/img/rabbit.png" class="rule_icons" height="22" width="22"><img src="/img/holdhands.png" class="rule_icons" height="22" width="22"><img src="/img/clock.png" class="rule_icons" height="22" width="22">		
 			<div data-role="popup" id="id_123" class="ui-content" data-theme="d">
 				<p>I am positioned over the origin.</p>
 			</div>
@@ -341,9 +517,9 @@ $("#_objections").val(0);
 			    {%- if v.element_type and v.eid %}	
 				<a href="#" class="popup_edit" data-role="button" data-etype="Reason" data-ptype="{{ v.element_type }}" data-pid="{{ v.eid }}">R</a>
 				<a href="#" class="popup_edit" data-role="button" data-etype="Objection" data-ptype="{{ v.element_type }}" data-pid="{{ v.eid }}">O</a> 
-                {%- endif %}
-				<a href="#popup_votes" data-rel="popup" data-position-to="#header" data-transition="pop" data-role="button">V</a>	
-				<a href="#popup_add" data-rel="popup" data-position-to="#header" data-transition="pop" data-role="button">Add</a>
+				<a href="#" class="popup_votes_class" data-rel="popup" data-position-to="#header" data-transition="pop" data-role="button" data-ptype="{{ v.element_type }}" data-pid="{{ v.eid }}">V</a>	
+				<a href="#" class="popup_add_class" data-rel="popup" data-position-to="#header" data-transition="pop" data-role="button"data-etype="{{ v.element_type }}" data-pid="{{ v.eid }}">Add</a>
+			    {%- endif %}
 			</div>
 			{% else %}
 			<div data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
@@ -351,7 +527,7 @@ $("#_objections").val(0);
 			</div>
 			{% endif %}
 			{%- if v.subnodes %}                                                                                                 
-			<div data-role="collapsible-set" data-inset="false" data-content-theme="c" id="set_2">{{ loop(v.subnodes.items() ) }}</div>                                     
+			<div data-role="collapsible-set" data-inset="false" data-content-theme="c" id="set_{{ v.eid }}">{{ loop(v.subnodes.items() ) }}</div>                                     
 			{%- endif %}                 
 		</div>
 		{%- endfor %}
@@ -360,56 +536,69 @@ $("#_objections").val(0);
 	<div data-role="popup" id="popup_votes" data-theme="none">
 		<div data-role="collapsible-set" data-corners="false" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d" style="margin:0; width:250px;">
 			<div data-role="collapsible" data-corners="false" data-mini="true" data-inset="false">
-			<h2>Vote</h2>
-			<ul data-role="listview" data-mini="true" data-corners="false" data-transition="pop">
-				<li><a href="#" data-rel="dialog">1:  Agree Slightly</a></li>
-				<li><a href="#" data-rel="dialog">10: Totally Disagree</a></li>
-			</ul>
-			</div><!-- /collapsible -->
-			<div data-role="collapsible" data-corners="false" data-mini="true" data-inset="false">
-			<h2>Add Ari</h2>
-			<ul data-role="listview" data-mini="true" data-corners="false">
-				<li><a href="#" data-rel="dialog">1</a></li>
-				<li><a href="#" data-rel="dialog">2</a></li>
-				<li><a href="#" data-rel="dialog">3</a></li>
-				<li><a href="#" data-rel="dialog">4</a></li>
-			</ul>
-			</div><!-- /collapsible -->
-		</div><!-- /collapsible set -->
-	</div><!-- /popup -->
-	<div data-role="popup" id="popup_add" data-theme="none">
-		<div data-role="collapsible-set" data-corners="false" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d" style="margin:0; width:250px;">
-			<div data-role="collapsible" data-corners="false" data-mini="true" data-inset="false">
-				<h2>Add stuff</h2>
+				<h2>Vote</h2>
 				<ul data-role="listview" data-mini="true" data-corners="false" data-transition="pop">
-					<li><a href="#popup_images" data-rel="popup" data-position-to="#header" >Add Photos</a></li>
-					<li><a href="#popup_loc" data-rel="popup" data-position-to="#header" >Add Location</a></li>	
-					<li><a href="#popup_date" data-rel="popup" data-position-to="#header" >Add Previous Date</a></li>
+					<li><a href="#" data-rel="dialog">1:  Agree Slightly</a></li>
+					<li><a href="#" data-rel="dialog">10: Totally Disagree</a></li>
+				</ul>
+			</div><!-- /collapsible -->
+			<div data-role="collapsible" data-corners="false" data-mini="true" data-inset="false">
+				<h2>Add Ari</h2>
+				<ul data-role="listview" data-mini="true" data-corners="false">
+					<li><a href="#" data-rel="dialog">1</a></li>
+					<li><a href="#" data-rel="dialog">2</a></li>
+					<li><a href="#" data-rel="dialog">3</a></li>
+					<li><a href="#" data-rel="dialog">4</a></li>
 				</ul>
 			</div><!-- /collapsible -->
 		</div><!-- /collapsible set -->
 	</div><!-- /popup -->
-	<div data-role="popup" id="popup_images" data-theme="c" style="max-width:400px;" class="ui-corner-all">
-		<div data-role="header" data-theme="a" class="ui-corner-top">
-			<h1>Add Photos</h1>
-		</div>
-		<div data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
-			<h3 class="ui-title">Please add photos?</h3>
-			<p>The first will be the main image.</p>
-			<a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="c">Add</a>
-			<a href="#" data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">Cancel</a>
-		</div>
-	</div>	
-	<div data-role="popup" id="popup_loc"  data-theme="c" style="max-width:400px;" class="ui-corner-all">
-		<div data-role="header" data-theme="a" class="ui-corner-top">
-			<h1>Add Location</h1>
-		</div>
-		<div data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
-			<h3 class="ui-title">Add Location<h3>
-			<a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="c">Add</a>
-			<a href="#" data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">Cancel</a>
-		</div>
-	</div>
+	<div data-role="popup" id="popup_add" data-theme="c" style="max-width:400px;" data-corners="false">
+		<div data-role="collapsible-set" data-corners="false" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d" style="margin:0; width:250px;">
+			<div data-role="collapsible" data-corners="false" data-mini="true" data-inset="false">
+			<h2>Add Images</h2>
+			<ul data-role="listview" data-mini="true" data-corners="false" data-transition="pop">
+				<li>
+					<p>Only One image allowed during beta phase.</p>
+					<form id="image_form" action="" method="POST" data-ajax="false" enctype="multipart/form-data">
+						<input type="file" name="file" accept="image/*; capture=camera">
+						<input type="hidden" id="i_entity_id" name="i_entity_id" value="">
+						<input type="hidden" id="i_type" name="i_type" value="">	
+						<input type="hidden" id="i_num" name="i_num" value="">
+						<input type="hidden" id="con_id" name="con_id" value="">							
+                        <input type="hidden" id="image_post_submit" name="image_post_submit" type="submit" value="Upload">												
+						<div data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
+							<a href="#" id="add_image_button" data-role="button" data-icon="plus" data-iconpos="right" data-mini="true" data-theme="e" >Add Image</a>
+							<a href="#" data-role="button" data-rel="back" data-transition="flow" >Cancel</a>
+						</div>
+					</form>
+				</li>
+			</ul>
+			</div>
+			<div data-role="collapsible" data-corners="false" data-mini="true" data-inset="false">
+				<h2>Add Location</h2>
+				<ul data-role="listview" data-mini="true" data-corners="false" data-transition="pop">
+					<li>
+						<div data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
+						    <a href="#popupMap" data-role="button" data-inline="true" data-theme="c" data-rel="dialog">Add</a> 
+							<a href="#" data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">Cancel</a>			
+						</div>
+					</li>
+				</ul>
+			</div>
+			<div data-role="collapsible" data-corners="false" data-mini="true" data-inset="false">
+				<h2>Add Dates</h2>
+				<ul data-role="listview" data-mini="true" data-corners="false" data-transition="pop">
+					<li>
+						<div data-role="controlgroup" data-type="horizontal" data-mini="true" data-corners="false">
+							<a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="c">Add</a>
+							<a href="#" data-role="button" data-inline="true" data-rel="back" data-transition="flow" data-theme="b">Cancel</a>			
+						</div>
+					</li>
+				</ul>
+			</div><!-- /collapsible -->
+		</div><!-- /collapsible set -->
+	</div><!-- /popup -->
     {% endif %}
 </div><!-- /content --> 
 <div data-role="footer" data-position="fixed">
@@ -437,8 +626,8 @@ $("#_objections").val(0);
 				</select>
 			</div>
 			</div>
-	</div> <!-- /footer -->
-</div><!-- /page1 -->
+	</div> <!-- /main page footer -->
+</div><!-- /main page end -->
 <div id="golci_txt" data-role="page">
 	<div data-role="content" data-theme="d">
 		<div  data-corners="false"  style="max-height:512px;">
@@ -450,7 +639,34 @@ $("#_objections").val(0);
 			</div>
 		</div>
     </div>
-</div><!-- /page2 -->
+</div><!-- /golci_txt page end -->
+<div id="golci_image" data-role="page">
+	<div data-role="content" data-corners="false"  data-theme="d">
+		<div  data-corners="false"  style="max-height:512px;">
+
+		</div>
+    </div>
+</div><!-- /page golci_image -->
+<div id="basic-map" data-role="page">
+	<div data-role="header">
+		<h1>Add Map to this Golci</h1>
+		<a data-rel="back">Back</a>
+	</div>
+	<div data-role="content">
+			<input name="pac-input" id="pac-input" class="controls" data-role="none" type="text" placeholder="Search Box">
+			<div id="map_canvas" style="height:350px;"></div>
+
+	</div>
+</div> <!-- /page basic-map -->
+<div data-role="page" id="popupMap">
+	<div data-role="header">
+    	<h1>Add Map to this Golci</h1>
+		<a data-rel="back">Back</a>
+	</div>	
+	<div data-role="content">
+		<iframe src="/map" width="480" height="320" seamless></iframe>
+    </div>
+</div>
 {% endblock %}
 {% block page2 %}
 

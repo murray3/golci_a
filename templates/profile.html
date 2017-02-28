@@ -1,35 +1,34 @@
 {% extends "base.html" %}
 
-    {% block header %}
-    <div data-role="header" id="header" data-position="fixed">
-        <h1>golci</h1><a href="/logout" data-ajax="false">Logout</a><a style="color:red;"href="/menu" data-icon="gear" class="ui-btn-right">Menu</a>
-    </div><!-- /header -->
-    {% endblock %}
-
 {% block content %}
   <div class="media">
     <div class="img avatar">
-      <img src="{{ user.avatar_url }}">
+      <img src="{{ user.avatar_url }}" style="width:50px; height:50px">
     </div>
-    <div class="body">
-      <h1 style="margin-top: 0; padding-top: 0">{{ user.name }}</h1>
+    <div >
+      <h3 style="margin-top: 0; padding-top: 0">{{ user.name }}</h3>
+      <h3 style="margin-top: 0; padding-top: 0">Total Points: {{ user.gpoints }}</h3>
       <p><a href="{{ user.link }}" target="_blank" rel="nofollow">{{ user.link }}</a></p>
+
+       <p>              </p>
     </div>
   </div>
-
-
-  <h2>auth session</h2>
-  <pre>{{ session }}</pre>
-  {% endblock %}
-  {% block footer %}
-		<div data-role="footer" data-position="fixed">
-				<div data-role="navbar">
-			<ul>
-				<li><a href="#" data-icon="grid">A</a></li>
-				<li><a href="#" data-icon="star">B</a></li>
-				<li><a href="#" data-icon="gear">C</a></li>
-			</ul>
-		</div><!-- /navbar -->
-		</div>
+  <div>
+        <ul data-role="listview"  data-divider-theme="a">	
+			<li data-role="list-divider"> Recent golci Activity<span class="ui-li-count" data-theme="a">{{count}}</span></li>
+    {% for c in cons %}
+       <li><a href="/cv?con_id={{c.contention_id}}" data-ajax="false">
+      {% if c.user_name %}
+       <p>              </p>
+        <p><strong>{{ c.user_name }} Posted on {{ c.date.strftime("%a, %d. %b %y, %I:%M%p") }}:</strong></p>
+      {% else %}
+       <p><strong>An anonymous person wrote:</strong></p>
+      {% endif %}
+      <p>{{ c.content }}</p>
+      <p class="ui-li-aside">tagged as {{c.elem_type}}, {{c.branch_name}}</p>
+      </a></li>
+    {% endfor %}
+    </ul> 
+</div> 
 
 {% endblock %}

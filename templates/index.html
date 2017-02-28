@@ -32,22 +32,24 @@
                 </div>
 {% endblock %}            
 {% block content %}
-    <ul id="dynalist" data-role="listview" data-theme="d" data-divider-theme="d">
-			<li data-role="list-divider">Latest golci <span class="ui-li-count">{{count}}</span></li>
+
+    <ul data-role="listview"  data-divider-theme="a">	
+			<li data-role="list-divider"> Latest golci <span class="ui-li-count" data-theme="a">{{count}}</span></li>
     {% for c in cons %}
-       <li><a href="/reccon?con_id={{c.key().id()}}" data-ajax="false">
-       <img src="/image?type=con&entity_id={{c.image_id}}" style="width:100%; height:100%"/>
+       <li><a href="/cv?con_id={{c.key.id()}}" data-ajax="false">
+       <img src="/{%- if c.image_1_url %}{{ c.image_1_url }}{% else %}img/unknown_user.png{% endif %}" style="width:100%; height:100%"/>  
       {% if c.author %}
-        <p><strong>{{ c.author }} Posted on {{c.date}}:</strong></p>
+       <p>              </p>
+        <p><strong>{{ c.author }} Posted on {{ c.date.strftime("%a, %d. %b %y, %I:%M%p") }}:</strong></p>
       {% else %}
        <p><strong>An anonymous person wrote:</strong></p>
       {% endif %}
-      
       <p>{{ c.content }}</p>
       <p class="ui-li-aside">tagged as {{c.branch_name}}</p>
       </a></li>
     {% endfor %}
-    </ul>
+    </ul>   
+
 {% endblock %}
 {% block mediaJS2 %}
 <script type="text/javascript">
