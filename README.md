@@ -1,4 +1,4 @@
 golci_a
 =======
 
-Alpha code for golci# storydrill
+Alpha code for golci
